@@ -119,3 +119,4 @@ public class MockVisionService implements VisionService {
                 "}", gestureCode, confidence, explanation != null ? explanation.replace("\"", "\\\"") : "");
     }
 }
+

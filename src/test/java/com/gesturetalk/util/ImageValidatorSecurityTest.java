@@ -132,3 +132,4 @@ class ImageValidatorSecurityTest {
         assertThrows(InvalidImageException.class, () -> ImageValidator.validate(tooShort));
     }
 }
+

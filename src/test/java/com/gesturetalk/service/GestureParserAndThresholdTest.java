@@ -91,3 +91,4 @@ class GestureParserAndThresholdTest {
         assertFalse(a2.isShouldAutoSpeak());
     }
 }
+
