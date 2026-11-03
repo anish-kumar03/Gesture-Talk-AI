@@ -1,8 +1,11 @@
 package com.gesturetalk.service;
 
 import com.gesturetalk.model.GestureAnalysis;
+import com.gesturetalk.model.GestureType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,11 +33,38 @@ class GestureRecognitionServiceTest {
         assertEquals("Yes, that's correct.", result.getMappedMessage());
         assertEquals(0.92, result.getConfidence());
         assertTrue(result.isMeetsThreshold());
+        assertTrue(result.isShouldAutoSpeak());
         assertEquals("WEBCAM", result.getSourceType());
     }
 
+    @ParameterizedTest(name = "Gesture {0} should map to \"{1}\" and authorize auto-speech")
+    @CsvSource(delimiter = '|', value = {
+        "THUMBS_UP | Yes, that's correct.",
+        "THUMBS_DOWN | No, that's incorrect.",
+        "OPEN_PALM | Please stop or wait.",
+        "V_SIGN | Peace and greetings.",
+        "INDEX_POINTING | Please look there."
+    })
+    void testAllFiveSupportedGestures(String gestureCode, String expectedPhrase) {
+        String mockJson = String.format("{\n" +
+                "  \"gestureCode\": \"%s\",\n" +
+                "  \"confidence\": 0.90,\n" +
+                "  \"explanation\": \"Clear observed gesture posture.\"\n" +
+                "}", gestureCode);
+
+        VisionService stubVisionService = (imageBytes, mimeType) -> mockJson;
+        GestureRecognitionService service = new GestureRecognitionService(stubVisionService, 0.75);
+
+        GestureAnalysis result = service.parseAndEvaluate(mockJson, "WEBCAM");
+
+        assertEquals(gestureCode, result.getGestureCode());
+        assertEquals(expectedPhrase, result.getMappedMessage());
+        assertTrue(result.isMeetsThreshold());
+        assertTrue(result.isShouldAutoSpeak(), "Recognized gestures meeting threshold must authorize auto-speech");
+    }
+
     @Test
-    @DisplayName("Should coerce gesture below 0.75 threshold to UNKNOWN")
+    @DisplayName("Should coerce gesture below 0.75 threshold to UNKNOWN and inhibit auto-speech")
     void testLowConfidenceCoercedToUnknown() {
         String mockJson = "{\n" +
                 "  \"gestureCode\": \"V_SIGN\",\n" +
@@ -53,6 +83,7 @@ class GestureRecognitionServiceTest {
         assertEquals("Gesture not recognized. Please try again.", result.getMappedMessage());
         assertEquals(0.65, result.getConfidence());
         assertFalse(result.isMeetsThreshold());
+        assertFalse(result.isShouldAutoSpeak(), "Low confidence gestures must NEVER auto-speak");
         assertTrue(result.getExplanation().contains("reliability threshold"));
     }
 
@@ -76,29 +107,11 @@ class GestureRecognitionServiceTest {
         assertEquals("Please stop or wait.", result.getMappedMessage());
         assertEquals(0.88, result.getConfidence());
         assertTrue(result.isMeetsThreshold());
+        assertTrue(result.isShouldAutoSpeak());
     }
 
     @Test
-    @DisplayName("Should handle alternative field 'gesture' if returned by model")
-    void testAlternativeFieldGesture() {
-        String mockJson = "{\n" +
-                "  \"gesture\": \"INDEX_POINTING\",\n" +
-                "  \"confidence\": 0.95,\n" +
-                "  \"explanation\": \"Single index finger pointing leftward.\"\n" +
-                "}";
-
-        VisionService stubVisionService = (imageBytes, mimeType) -> mockJson;
-        GestureRecognitionService service = new GestureRecognitionService(stubVisionService, 0.75);
-
-        GestureAnalysis result = service.parseAndEvaluate(mockJson, "WEBCAM");
-
-        assertEquals("INDEX_POINTING", result.getGestureCode());
-        assertEquals("Please look there.", result.getMappedMessage());
-        assertTrue(result.isMeetsThreshold());
-    }
-
-    @Test
-    @DisplayName("Should safely handle malformed JSON and return UNKNOWN")
+    @DisplayName("Should safely handle malformed JSON and return UNKNOWN with auto-speak disabled")
     void testMalformedJsonFallback() {
         String malformed = "I think the gesture is THUMBS_UP with 90% confidence.";
 
@@ -110,10 +123,11 @@ class GestureRecognitionServiceTest {
         assertEquals("UNKNOWN", result.getGestureCode());
         assertEquals(0.0, result.getConfidence());
         assertFalse(result.isMeetsThreshold());
+        assertFalse(result.isShouldAutoSpeak());
     }
 
     @Test
-    @DisplayName("Should handle explicit UNKNOWN gesture from model")
+    @DisplayName("Explicit UNKNOWN gesture from model must never auto-speak")
     void testExplicitUnknownFromModel() {
         String mockJson = "{\n" +
                 "  \"gestureCode\": \"UNKNOWN\",\n" +
@@ -129,5 +143,6 @@ class GestureRecognitionServiceTest {
         assertEquals("UNKNOWN", result.getGestureCode());
         assertEquals(0.30, result.getConfidence());
         assertFalse(result.isMeetsThreshold());
+        assertFalse(result.isShouldAutoSpeak(), "UNKNOWN results must never be spoken automatically");
     }
 }

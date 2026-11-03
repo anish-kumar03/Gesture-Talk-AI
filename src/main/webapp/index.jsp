@@ -37,7 +37,7 @@
             <div class="d-flex align-items-center gap-3 order-lg-3">
                 <span class="gt-badge-live">
                     <span class="gt-pulse-dot"></span>
-                    <span>Phase 3: Gemini Vision</span>
+                    <span>Phase 4: Speech & Mapping</span>
                 </span>
                 <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-label="Toggle navigation">
                     <i class="bi bi-list fs-2 text-white"></i>
@@ -270,38 +270,53 @@
                             </div>
                         </div>
 
-                        <!-- Speech Synthesis Controls Placeholder -->
+                        <!-- Speech Synthesis Controls -->
                         <div class="pt-3 border-top" style="border-color: var(--gt-border-glass) !important;">
-                            <label class="small text-uppercase text-muted fw-bold mb-2 d-flex justify-content-between align-items-center">
-                                <span><i class="bi bi-volume-up-fill text-info me-1"></i> Speech Synthesis Controls</span>
-                                <span class="badge bg-secondary-subtle text-secondary small">Web Speech API</span>
-                            </label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-uppercase text-muted fw-bold">
+                                    <i class="bi bi-volume-up-fill text-info me-1"></i> Speech Synthesis Controls
+                                </span>
+                                <!-- Speaking State Indicator -->
+                                <span class="badge rounded-pill bg-dark border border-secondary text-muted small" id="speechStatusBadge">
+                                    <i class="bi bi-soundwave me-1"></i> Idle
+                                </span>
+                            </div>
 
-                            <div class="row g-2 mb-2">
+                            <div class="row g-2 mb-3">
                                 <div class="col-12">
+                                    <label class="small text-muted mb-1">Voice Selection:</label>
                                     <select class="form-select form-select-sm bg-dark text-white border-secondary" id="voiceSelect" aria-label="Select Voice">
                                         <option value="">Loading system speech voices...</option>
                                     </select>
                                 </div>
                                 <div class="col-6">
                                     <div class="d-flex justify-content-between small text-muted mb-1">
-                                        <span>Rate:</span>
-                                        <span id="rateValue" class="text-white">1.0x</span>
+                                        <span>Speed (Rate):</span>
+                                        <span id="rateValue" class="text-white fw-bold">1.0x</span>
                                     </div>
                                     <input type="range" class="form-range" id="voiceRate" min="0.5" max="2.0" step="0.1" value="1.0">
                                 </div>
                                 <div class="col-6">
                                     <div class="d-flex justify-content-between small text-muted mb-1">
                                         <span>Pitch:</span>
-                                        <span id="pitchValue" class="text-white">1.0</span>
+                                        <span id="pitchValue" class="text-white fw-bold">1.0</span>
                                     </div>
                                     <input type="range" class="form-range" id="voicePitch" min="0.5" max="1.5" step="0.1" value="1.0">
                                 </div>
                             </div>
 
-                            <button type="button" class="btn btn-sm btn-outline-info w-100" id="btnTestSpeech">
-                                <i class="bi bi-soundwave me-1"></i> Test Voice Engine
-                            </button>
+                            <!-- Audio Action Controls: Speak, Replay, Stop -->
+                            <div class="btn-group w-100" role="group" aria-label="Speech Action Controls">
+                                <button type="button" class="btn btn-sm btn-outline-info" id="btnSpeakSpeech" title="Speak the displayed phrase">
+                                    <i class="bi bi-play-fill me-1"></i> Speak
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary text-light" id="btnReplaySpeech" title="Replay the last spoken phrase">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Replay
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="btnStopSpeech" title="Immediately cancel speech playback">
+                                    <i class="bi bi-stop-fill me-1"></i> Stop
+                                </button>
+                            </div>
                         </div>
 
                     </div>
@@ -496,6 +511,7 @@
     <!-- Application JavaScript Modules -->
     <script src="${pageContext.request.contextPath}/static/js/webcam.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/upload.js"></script>
+    <script src="${pageContext.request.contextPath}/static/js/tts.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/app.js"></script>
 
 </body>

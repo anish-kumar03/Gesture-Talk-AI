@@ -35,9 +35,9 @@ In strict compliance with project governance:
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
 │ Phase 3 │ Gemini Vision SDK & Classification       │ COMPLETED  │ Google GenAI SDK integration, prompts    │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ Phase 4 │ Deterministic Mapping & SpeechSynthesis  │ CURRENT    │ Java semantic mapping, Web Speech API    │
+│ Phase 4 │ Deterministic Mapping & SpeechSynthesis  │ COMPLETED  │ Java semantic mapping, Web Speech API    │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ Phase 5 │ MySQL Persistence & JDBC Audit Logging   │ PLANNED    │ MySQL schema, HikariCP, DAOs, history API│
+│ Phase 5 │ MySQL Persistence & JDBC Audit Logging   │ CURRENT    │ MySQL schema, HikariCP, DAOs, history API│
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
 │ Phase 6 │ Testing, Accuracy Evaluation & Security  │ PLANNED    │ Master test suite, 120-image benchmark  │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
@@ -95,7 +95,7 @@ In strict compliance with project governance:
 
 ---
 
-### Phase 4: Deterministic Mapping & Speech Synthesis `[PLANNED]`
+### Phase 4: Deterministic Mapping & Speech Synthesis `[COMPLETED]`
 * **Objective**: Map recognized gesture tokens to immutable natural language sentences in Java and vocalize them in the browser.
 * **Required Implementation**:
   * `GestureMappingService.java` executing deterministic mapping.
@@ -107,7 +107,7 @@ In strict compliance with project governance:
 
 ---
 
-### Phase 5: MySQL Persistence & Recognition Audit History `[PLANNED]`
+### Phase 5: MySQL Persistence & Recognition Audit History `[CURRENT]`
 * **Objective**: Persist audit logs of recognized gestures into MySQL and display them in a filterable table.
 * **Required Implementation**:
   * Database schema setup (`schema.sql` creating `gesture_history`).

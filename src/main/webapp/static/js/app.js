@@ -1,6 +1,6 @@
 /**
  * GestureTalk AI — Central Client Application Coordinator
- * Phase 3: Gemini Vision Multimodal Recognition & Audio Synthesis
+ * Phase 4: Gesture-to-Text Mapping & Audio Speech Articulation
  * Strictly maintains architectural boundaries: zero business logic in JS, zero API keys in client.
  */
 
@@ -41,15 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultExplanationText = document.getElementById('resultExplanationText');
     const devModeBanner = document.getElementById('devModeBanner');
 
-    // Speech Controls
+    // Speech Controls & State Indicators
+    const speechStatusBadge = document.getElementById('speechStatusBadge');
     const voiceSelect = document.getElementById('voiceSelect');
     const voiceRate = document.getElementById('voiceRate');
     const voicePitch = document.getElementById('voicePitch');
     const rateValue = document.getElementById('rateValue');
     const pitchValue = document.getElementById('pitchValue');
-    const btnTestSpeech = document.getElementById('btnTestSpeech');
+    const btnSpeakSpeech = document.getElementById('btnSpeakSpeech');
+    const btnReplaySpeech = document.getElementById('btnReplaySpeech');
+    const btnStopSpeech = document.getElementById('btnStopSpeech');
 
-    // 2. Initialize Managers
+    // 2. Initialize Hardware & Audio Managers
     const webcam = new WebcamManager('webcamVideo', {
         width: { ideal: 1280 },
         height: { ideal: 720 },
@@ -60,10 +63,108 @@ document.addEventListener('DOMContentLoaded', () => {
         maxSizeBytes: 5 * 1024 * 1024
     });
 
+    const speech = new SpeechManager({
+        rate: parseFloat(voiceRate.value) || 1.0,
+        pitch: parseFloat(voicePitch.value) || 1.0
+    });
+
     let currentCapturedPayload = null;
     let currentSourceType = 'WEBCAM';
 
-    // 3. Tab Mode Switching
+    // 3. Speech State Binding & Indicator
+    speech.onStateChange = (isSpeaking) => {
+        if (isSpeaking) {
+            speechStatusBadge.className = 'badge rounded-pill bg-success-subtle text-success border border-success small';
+            speechStatusBadge.innerHTML = '<span class="spinner-grow spinner-grow-sm me-1" role="status" aria-hidden="true"></span>Speaking...';
+            btnSpeakSpeech.disabled = true;
+            btnStopSpeech.disabled = false;
+        } else {
+            speechStatusBadge.className = 'badge rounded-pill bg-dark border border-secondary text-muted small';
+            speechStatusBadge.innerHTML = '<i class="bi bi-soundwave me-1"></i>Idle';
+            btnSpeakSpeech.disabled = false;
+            btnStopSpeech.disabled = true;
+        }
+        btnReplaySpeech.disabled = !speech.hasLastMessage();
+    };
+
+    speech.onError = (msg) => {
+        showToast('Speech Warning', msg, 'warning');
+    };
+
+    function populateVoices() {
+        if (!speech.isSupported) {
+            voiceSelect.innerHTML = '<option disabled selected>Speech Synthesis Unsupported</option>';
+            return;
+        }
+
+        const voices = speech.getVoices();
+        voiceSelect.innerHTML = '';
+        if (voices.length === 0) {
+            voiceSelect.innerHTML = '<option value="">Default System Voice</option>';
+            return;
+        }
+
+        voices.forEach((v, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.textContent = `${v.name} (${v.lang})`;
+            if (v.default || v.lang.startsWith('en')) {
+                opt.selected = true;
+            }
+            voiceSelect.appendChild(opt);
+        });
+
+        // Set initial voice selection in speech manager
+        if (voiceSelect.value !== '') {
+            speech.options.voiceIndex = parseInt(voiceSelect.value, 10);
+        }
+    }
+
+    populateVoices();
+    if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    voiceSelect.addEventListener('change', () => {
+        speech.options.voiceIndex = voiceSelect.value !== '' ? parseInt(voiceSelect.value, 10) : null;
+    });
+
+    voiceRate.addEventListener('input', () => {
+        const rate = parseFloat(voiceRate.value);
+        rateValue.textContent = `${rate.toFixed(1)}x`;
+        speech.options.rate = rate;
+    });
+
+    voicePitch.addEventListener('input', () => {
+        const pitch = parseFloat(voicePitch.value);
+        pitchValue.textContent = `${pitch.toFixed(1)}`;
+        speech.options.pitch = pitch;
+    });
+
+    btnSpeakSpeech.addEventListener('click', () => {
+        const text = resultMessageText.textContent.trim();
+        if (text && !text.includes('Start the webcam') && !text.includes('Click "Analyze Gesture"')) {
+            speech.speak(text);
+        } else {
+            showToast('No Message', 'Capture or recognize a hand gesture first before speaking.', 'info');
+        }
+    });
+
+    btnReplaySpeech.addEventListener('click', () => {
+        if (speech.hasLastMessage()) {
+            speech.replay();
+            showToast('Replaying Speech', `Replaying: "${speech.getLastMessage()}"`, 'info');
+        } else {
+            showToast('No Previous Speech', 'No previously vocalized phrase found in session.', 'warning');
+        }
+    });
+
+    btnStopSpeech.addEventListener('click', () => {
+        speech.stop();
+        showToast('Speech Stopped', 'Vocalization interrupted.', 'info');
+    });
+
+    // 4. Tab Mode Switching
     modeBtnWebcam.addEventListener('click', () => {
         modeBtnWebcam.classList.add('active');
         modeBtnUpload.classList.remove('active');
@@ -80,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSourceType = 'UPLOAD';
     });
 
-    // 4. Webcam Control Listeners
+    // 5. Webcam Control Listeners
     btnStartCamera.addEventListener('click', async () => {
         btnStartCamera.disabled = true;
         setCameraStatus('Connecting...', 'warning');
@@ -137,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 5. Upload Manager Event Handlers
+    // 6. Upload Manager Event Handlers
     upload.onFileSelected = (fileData) => {
         displayCapturedPayload(fileData, 'UPLOAD');
         showToast('Image Loaded', `Loaded "${fileData.name}" (${(fileData.sizeBytes / 1024).toFixed(1)} KB).`, 'success');
@@ -147,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Upload Rejected', error.message, 'warning');
     };
 
-    // 6. Preview Display & Dispatch Handlers
+    // 7. Preview Display & Dispatch Handlers
     function displayCapturedPayload(payload, source) {
         currentCapturedPayload = payload;
         currentSourceType = source;
@@ -161,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultGestureBadge.className = 'gt-result-badge text-warning border-warning';
         resultGestureBadge.innerHTML = '<i class="bi bi-clock-history me-2"></i>READY FOR ANALYSIS';
         resultGestureName.textContent = 'Frame Captured in Memory';
-        resultMessageText.textContent = 'Click "Analyze Gesture with Gemini" to trigger multimodal AI classification.';
+        resultMessageText.textContent = 'Click "Analyze Gesture with Gemini" to trigger multimodal AI classification and vocalization.';
         resultConfidenceBar.style.width = '100%';
         resultConfidenceVal.textContent = '100% In-Memory';
         resultExplanationText.textContent = `Source: ${source} | Format: ${payload.mimeType} | Size: ${payload.sizeBytes.toLocaleString()} bytes.`;
@@ -173,10 +274,11 @@ document.addEventListener('DOMContentLoaded', () => {
         previewContainer.classList.add('d-none');
         previewImage.src = '';
         upload.reset();
+        speech.stop();
         resetResultPanel();
     });
 
-    // 7. Core AI Analysis Dispatcher (POST /api/recognize)
+    // 8. Core AI Analysis Dispatcher (POST /api/recognize)
     if (btnAnalyzeGesture) {
         btnAnalyzeGesture.addEventListener('click', async () => {
             if (!currentCapturedPayload || !currentCapturedPayload.blob) {
@@ -210,11 +312,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Render successful recognition outcome
                 renderRecognitionSuccess(data);
-                showToast('Recognition Complete', `Recognized: ${data.displayName} (${(data.confidence * 100).toFixed(1)}%)`, 'success');
 
-                // Trigger browser SpeechSynthesis
-                if (data.mappedMessage) {
-                    speakMessage(data.mappedMessage);
+                // SPEECH SYNTHESIS RULE:
+                // Speak only recognized gestures. Do NOT automatically speak UNKNOWN results.
+                if (data.shouldAutoSpeak && data.mappedMessage) {
+                    speech.speak(data.mappedMessage);
+                    showToast('Vocalizing Gesture', `Speaking: "${data.mappedMessage}"`, 'success');
+                } else if (data.gestureCode === 'UNKNOWN') {
+                    speech.stop();
+                    showToast('Unrecognized Sign', 'Gesture is ambiguous or below confidence threshold. Audio muted.', 'warning');
                 }
 
             } catch (error) {
@@ -277,10 +383,11 @@ document.addEventListener('DOMContentLoaded', () => {
         resultMessageText.textContent = data.mappedMessage || 'No message mapped.';
 
         resultConfidenceBar.style.width = `${confidencePct}%`;
-        resultConfidenceVal.textContent = `${confidencePct}% (${data.meetsThreshold ? 'Verified' : 'Ambiguous'})`;
+        resultConfidenceVal.textContent = `${confidencePct}% estimated certainty (${data.meetsThreshold ? 'High Confidence' : 'Below Threshold'})`;
 
         resultExplanationText.textContent = data.explanation || 'Analyzed via Google Gemini Vision.';
         devModeBanner.classList.add('d-none');
+        btnReplaySpeech.disabled = !speech.hasLastMessage();
     }
 
     function renderRecognitionError(errorMessage) {
@@ -327,69 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 8. Speech Synthesis
-    function populateVoices() {
-        if (!('speechSynthesis' in window)) {
-            voiceSelect.innerHTML = '<option disabled selected>Speech Synthesis Unsupported</option>';
-            return;
-        }
-
-        const voices = window.speechSynthesis.getVoices();
-        voiceSelect.innerHTML = '';
-        if (voices.length === 0) {
-            voiceSelect.innerHTML = '<option value="">Default System Voice</option>';
-            return;
-        }
-
-        voices.forEach((v, index) => {
-            const opt = document.createElement('option');
-            opt.value = index;
-            opt.textContent = `${v.name} (${v.lang})`;
-            if (v.default || v.lang.startsWith('en')) {
-                opt.selected = true;
-            }
-            voiceSelect.appendChild(opt);
-        });
-    }
-
-    if ('speechSynthesis' in window) {
-        populateVoices();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoices;
-        }
-    }
-
-    voiceRate.addEventListener('input', () => {
-        rateValue.textContent = `${parseFloat(voiceRate.value).toFixed(1)}x`;
-    });
-
-    voicePitch.addEventListener('input', () => {
-        pitchValue.textContent = `${parseFloat(voicePitch.value).toFixed(1)}`;
-    });
-
-    function speakMessage(text) {
-        if (!('speechSynthesis' in window) || !text) return;
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        const voices = window.speechSynthesis.getVoices();
-        if (voiceSelect.value !== '' && voices[voiceSelect.value]) {
-            utterance.voice = voices[voiceSelect.value];
-        }
-        utterance.rate = parseFloat(voiceRate.value) || 1.0;
-        utterance.pitch = parseFloat(voicePitch.value) || 1.0;
-
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utterance);
-    }
-
-    btnTestSpeech.addEventListener('click', () => {
-        const text = resultMessageText.textContent.includes('Start the webcam') 
-            ? 'GestureTalk AI voice engine is active and ready.' 
-            : resultMessageText.textContent;
-        speakMessage(text);
-        showToast('Speech Synthesized', 'Audio vocalization triggered through browser engine.', 'info');
-    });
-
     // 9. Toast Notification Helper
     function showToast(title, message, variant = 'info') {
         const toastEl = document.getElementById('appToast');
@@ -413,5 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cleanup tracks on page unload
     window.addEventListener('beforeunload', () => {
         webcam.stop();
+        speech.stop();
     });
 });

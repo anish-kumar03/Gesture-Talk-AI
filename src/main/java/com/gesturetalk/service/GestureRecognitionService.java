@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Core business logic service that coordinates image analysis, parses Gemini output,
- * enforces confidence thresholds, and maps gestures to deterministic spoken phrases.
+ * enforces confidence thresholds, and uses GestureMessageMapper for deterministic text mapping.
  */
 public class GestureRecognitionService {
 
@@ -19,18 +19,24 @@ public class GestureRecognitionService {
     public static final double DEFAULT_CONFIDENCE_THRESHOLD = 0.75;
 
     private final VisionService visionService;
+    private final GestureMessageMapper messageMapper;
     private final double confidenceThreshold;
 
     public GestureRecognitionService() {
-        this(new GeminiVisionService(), resolveConfiguredThreshold());
+        this(new GeminiVisionService(), new GestureMessageMapper(), resolveConfiguredThreshold());
     }
 
     public GestureRecognitionService(VisionService visionService) {
-        this(visionService, resolveConfiguredThreshold());
+        this(visionService, new GestureMessageMapper(), resolveConfiguredThreshold());
     }
 
     public GestureRecognitionService(VisionService visionService, double confidenceThreshold) {
+        this(visionService, new GestureMessageMapper(), confidenceThreshold);
+    }
+
+    public GestureRecognitionService(VisionService visionService, GestureMessageMapper messageMapper, double confidenceThreshold) {
         this.visionService = visionService;
+        this.messageMapper = (messageMapper != null) ? messageMapper : new GestureMessageMapper();
         this.confidenceThreshold = confidenceThreshold;
         logger.info("GestureRecognitionService initialized with confidence threshold: {}", this.confidenceThreshold);
     }
@@ -95,8 +101,9 @@ public class GestureRecognitionService {
             }
         } catch (JsonSyntaxException | IllegalStateException ex) {
             logger.warn("Failed to parse Gemini output as JSON: {}. Falling back to UNKNOWN.", cleanJson, ex);
-            return new GestureAnalysis(GestureType.UNKNOWN, 0.0, 
-                "Malformed model JSON output. Image ambiguity detected.", sourceType, false);
+            String unknownMsg = messageMapper.getMessage(GestureType.UNKNOWN);
+            return new GestureAnalysis(GestureType.UNKNOWN, unknownMsg, 0.0, 
+                "Malformed model JSON output. Image ambiguity detected.", sourceType, false, false);
         }
 
         // 3. Map string token to supported GestureType enum
@@ -121,7 +128,12 @@ public class GestureRecognitionService {
             logger.info("Recognized gesture: {} (confidence={}, source={})", finalGestureType, confidence, sourceType);
         }
 
-        return new GestureAnalysis(finalGestureType, confidence, explanation, sourceType, meetsThreshold);
+        // 5. Deterministic text mapping and automatic speech authorization
+        String mappedMessage = messageMapper.getMessage(finalGestureType);
+        boolean shouldAutoSpeak = messageMapper.isAutoSpeakAllowed(finalGestureType, meetsThreshold);
+
+        return new GestureAnalysis(finalGestureType, mappedMessage, confidence, explanation, 
+                sourceType, meetsThreshold, shouldAutoSpeak);
     }
 
     /**
@@ -145,5 +157,9 @@ public class GestureRecognitionService {
 
     public double getConfidenceThreshold() {
         return confidenceThreshold;
+    }
+
+    public GestureMessageMapper getMessageMapper() {
+        return messageMapper;
     }
 }
