@@ -14,3 +14,4 @@ public interface VisionService {
      */
     String analyzeGesture(byte[] imageBytes, String mimeType);
 }
+

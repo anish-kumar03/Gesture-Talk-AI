@@ -13,3 +13,4 @@ public class AIServiceException extends GestureRecognitionException {
         super(errorCode, message, httpStatus, cause);
     }
 }
+

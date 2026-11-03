@@ -52,3 +52,4 @@ class GestureTypeTest {
         assertEquals("Gesture not recognized. Please try again.", GestureType.UNKNOWN.getDefaultMessage());
     }
 }
+

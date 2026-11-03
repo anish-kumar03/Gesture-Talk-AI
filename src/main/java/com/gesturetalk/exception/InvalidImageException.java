@@ -9,3 +9,4 @@ public class InvalidImageException extends GestureRecognitionException {
         super(errorCode, message, httpStatus);
     }
 }
+

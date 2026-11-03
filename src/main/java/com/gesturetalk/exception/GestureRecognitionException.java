@@ -28,3 +28,4 @@ public class GestureRecognitionException extends RuntimeException {
         return httpStatus;
     }
 }
+

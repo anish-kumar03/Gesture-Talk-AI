@@ -83,3 +83,4 @@ class ImageValidatorTest {
         assertEquals("UNSUPPORTED_IMAGE_FORMAT", ex.getErrorCode());
     }
 }
+

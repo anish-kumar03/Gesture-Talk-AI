@@ -62,3 +62,4 @@ public class GestureAnalysis {
         return meetsThreshold;
     }
 }
+

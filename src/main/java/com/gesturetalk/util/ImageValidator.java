@@ -112,3 +112,4 @@ public final class ImageValidator {
         return true;
     }
 }
+
