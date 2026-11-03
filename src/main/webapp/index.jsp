@@ -37,7 +37,7 @@
             <div class="d-flex align-items-center gap-3 order-lg-3">
                 <span class="gt-badge-live">
                     <span class="gt-pulse-dot"></span>
-                    <span>Phase 4: Speech & Mapping</span>
+                    <span>Phase 5: MySQL Persistence</span>
                 </span>
                 <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-label="Toggle navigation">
                     <i class="bi bi-list fs-2 text-white"></i>
@@ -48,6 +48,7 @@
                 <div class="navbar-nav gap-2 py-2 py-lg-0">
                     <a class="gt-nav-link active" href="#workspace"><i class="bi bi-camera-video me-1"></i> Workspace</a>
                     <a class="gt-nav-link" href="#gestures"><i class="bi bi-hand-index me-1"></i> Supported Gestures</a>
+                    <a class="gt-nav-link" href="#history"><i class="bi bi-clock-history me-1"></i> Audit History</a>
                     <a class="gt-nav-link" href="#how-it-works"><i class="bi bi-diagram-3 me-1"></i> How It Works</a>
                     <a class="gt-nav-link" href="#about"><i class="bi bi-info-circle me-1"></i> About</a>
                 </div>
@@ -214,7 +215,7 @@
                             <h5 class="mb-0">Recognition & Speech</h5>
                         </div>
                         <span class="badge rounded-pill bg-dark border border-secondary text-light small px-2 py-1">
-                            Phase 3 Active
+                            Phase 5 Active
                         </span>
                     </div>
 
@@ -413,7 +414,87 @@
         </div>
     </section>
 
-    <!-- 5. HOW IT WORKS SECTION -->
+    <!-- 5. RECOGNITION AUDIT HISTORY SECTION -->
+    <section class="container py-5" id="history">
+        <div class="gt-card">
+            <div class="gt-card-header flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-primary fs-5"></i>
+                    <h5 class="mb-0">Recognition Audit History</h5>
+                    <span class="badge rounded-pill bg-dark border border-secondary text-info ms-2" id="historyCountBadge">
+                        0 records
+                    </span>
+                </div>
+
+                <!-- Filter & Action Controls -->
+                <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                    <!-- Gesture Filter Selector -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="historyGestureFilter" class="small text-muted mb-0">Filter:</label>
+                        <select class="form-select form-select-sm bg-dark text-white border-secondary" id="historyGestureFilter" style="min-width: 155px;">
+                            <option value="ALL" selected>All Gestures</option>
+                            <option value="THUMBS_UP">Thumbs Up</option>
+                            <option value="THUMBS_DOWN">Thumbs Down</option>
+                            <option value="OPEN_PALM">Open Palm</option>
+                            <option value="V_SIGN">V Sign</option>
+                            <option value="INDEX_POINTING">Index Pointing</option>
+                            <option value="UNKNOWN">Unknown</option>
+                        </select>
+                    </div>
+
+                    <!-- Refresh Button -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-light" id="btnRefreshHistory" title="Refresh Latest Records">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                    </button>
+
+                    <!-- Clear History Button with Confirmation -->
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="btnClearHistory" title="Clear All History Records">
+                        <i class="bi bi-trash3 me-1"></i> Clear History
+                    </button>
+                </div>
+            </div>
+
+            <div class="gt-card-body">
+                <!-- Status & Error Alert -->
+                <div id="historyStatusAlert" class="alert alert-info py-2 px-3 small mb-3 border-info d-none"></div>
+
+                <!-- Loading Spinner -->
+                <div id="historyLoadingSpinner" class="text-center py-4 d-none">
+                    <div class="spinner-border text-primary spinner-border-sm me-2" role="status"></div>
+                    <span class="text-muted small">Loading recognition history from MySQL...</span>
+                </div>
+
+                <!-- Empty State Indicator -->
+                <div id="historyEmptyState" class="text-center py-5 d-none">
+                    <i class="bi bi-journal-x fs-1 text-muted mb-3 d-block"></i>
+                    <h6 class="text-white mb-2">No Recognition Records Found</h6>
+                    <p class="text-muted small mb-0">Capture a live gesture with your webcam or upload a photo to start recording audit logs.</p>
+                </div>
+
+                <!-- History Records Table -->
+                <div id="historyTableContainer" class="table-responsive">
+                    <table class="table table-dark table-hover table-striped mb-0 align-middle">
+                        <thead class="text-secondary small text-uppercase" style="border-bottom: 1px solid var(--gt-border-glass);">
+                            <tr>
+                                <th scope="col" style="width: 70px;">ID</th>
+                                <th scope="col" style="width: 140px;">Gesture</th>
+                                <th scope="col">Spoken Message</th>
+                                <th scope="col" style="width: 150px;">Confidence</th>
+                                <th scope="col" style="width: 110px;">Source</th>
+                                <th scope="col">AI Explanation</th>
+                                <th scope="col" style="width: 170px;">Logged At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- Injected dynamically by history.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. HOW IT WORKS SECTION -->
     <section class="container py-5" id="how-it-works">
         <div class="gt-card p-4 p-lg-5">
             <div class="row align-items-center g-4">
@@ -512,6 +593,7 @@
     <script src="${pageContext.request.contextPath}/static/js/webcam.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/upload.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/tts.js"></script>
+    <script src="${pageContext.request.contextPath}/static/js/history.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/app.js"></script>
 
 </body>

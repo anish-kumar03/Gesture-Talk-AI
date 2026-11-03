@@ -1,7 +1,10 @@
 package com.gesturetalk.controller;
 
+import com.gesturetalk.dao.GestureHistoryDAO;
+import com.gesturetalk.dao.HistoryDAO;
 import com.gesturetalk.exception.GestureRecognitionException;
 import com.gesturetalk.model.GestureAnalysis;
+import com.gesturetalk.model.GestureHistory;
 import com.gesturetalk.service.GestureRecognitionService;
 import com.gesturetalk.util.ImageValidator;
 import com.gesturetalk.util.JsonUtils;
@@ -33,6 +36,7 @@ public class GestureRecognitionServlet extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(GestureRecognitionServlet.class);
 
     private GestureRecognitionService recognitionService;
+    private HistoryDAO historyDAO;
 
     @Override
     public void init() throws ServletException {
@@ -44,6 +48,11 @@ public class GestureRecognitionServlet extends HttpServlet {
             logger.error("Warning: GestureRecognitionService initialization deferred: {}", ex.getMessage());
             // Allow lazy initialization on first request if environment variable was set after startup
         }
+        try {
+            this.historyDAO = new GestureHistoryDAO();
+        } catch (Exception ex) {
+            logger.warn("GestureHistoryDAO initialization deferred: {}", ex.getMessage());
+        }
     }
 
     /**
@@ -53,11 +62,25 @@ public class GestureRecognitionServlet extends HttpServlet {
         this.recognitionService = service;
     }
 
+    /**
+     * Package-private setter for DAO injection during testing.
+     */
+    void setHistoryDAO(HistoryDAO historyDAO) {
+        this.historyDAO = historyDAO;
+    }
+
     private synchronized GestureRecognitionService getRecognitionService() {
         if (this.recognitionService == null) {
             this.recognitionService = new GestureRecognitionService();
         }
         return this.recognitionService;
+    }
+
+    private synchronized HistoryDAO getHistoryDAO() {
+        if (this.historyDAO == null) {
+            this.historyDAO = new GestureHistoryDAO();
+        }
+        return this.historyDAO;
     }
 
     @Override
@@ -90,7 +113,16 @@ public class GestureRecognitionServlet extends HttpServlet {
             // 4. Execute AI Gesture Recognition
             GestureAnalysis analysis = getRecognitionService().recognize(imageBytes, mimeType, sourceType);
 
-            // 5. Return structured JSON response
+            // 5. Persist recognition audit record to MySQL via JDBC
+            try {
+                GestureHistory history = GestureHistory.fromAnalysis(analysis);
+                long loggedId = getHistoryDAO().insert(history);
+                logger.debug("Successfully logged gesture recognition to database with id: {}", loggedId);
+            } catch (Exception dbEx) {
+                logger.warn("Could not log gesture to database (database may be offline): {}", dbEx.getMessage());
+            }
+
+            // 6. Return structured JSON response
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().write(JsonUtils.toJson(analysis));
 

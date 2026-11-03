@@ -80,3 +80,4 @@ public class GestureMessageMapper {
         return gestureType.getDisplayName();
     }
 }
+

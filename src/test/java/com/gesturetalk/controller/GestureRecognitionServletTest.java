@@ -43,7 +43,7 @@ class GestureRecognitionServletTest {
     }
 
     @Test
-    @DisplayName("Should return 200 OK with analysis JSON for valid image")
+    @DisplayName("Should return 200 OK with analysis JSON for valid image and persist to history DAO")
     void testSuccessfulRecognition() throws Exception {
         byte[] validJpeg = new byte[32];
         validJpeg[0] = (byte) 0xFF;
@@ -54,6 +54,10 @@ class GestureRecognitionServletTest {
                 "{\"gestureCode\":\"THUMBS_UP\",\"confidence\":0.95,\"explanation\":\"Clear thumbs up\"}";
         servlet.setRecognitionService(new GestureRecognitionService(stubVisionService, 0.75));
 
+        com.gesturetalk.dao.HistoryDAO mockDao = mock(com.gesturetalk.dao.HistoryDAO.class);
+        when(mockDao.insert(any(com.gesturetalk.model.GestureHistory.class))).thenReturn(42L);
+        servlet.setHistoryDAO(mockDao);
+
         when(request.getPart("image")).thenReturn(imagePart);
         when(request.getParameter("sourceType")).thenReturn("WEBCAM");
         when(imagePart.getInputStream()).thenReturn(new ByteArrayInputStream(validJpeg));
@@ -61,6 +65,7 @@ class GestureRecognitionServletTest {
         servlet.doPost(request, response);
 
         verify(response).setStatus(HttpServletResponse.SC_OK);
+        verify(mockDao).insert(any(com.gesturetalk.model.GestureHistory.class));
         String body = responseWriter.toString();
         assertTrue(body.contains("THUMBS_UP"));
         assertTrue(body.contains("Yes, that's correct."));

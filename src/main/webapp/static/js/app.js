@@ -313,6 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Render successful recognition outcome
                 renderRecognitionSuccess(data);
 
+                // Auto-refresh recognition audit history table
+                if (window.historyManager && typeof window.historyManager.loadHistory === 'function') {
+                    window.historyManager.loadHistory();
+                }
+
                 // SPEECH SYNTHESIS RULE:
                 // Speak only recognized gestures. Do NOT automatically speak UNKNOWN results.
                 if (data.shouldAutoSpeak && data.mappedMessage) {

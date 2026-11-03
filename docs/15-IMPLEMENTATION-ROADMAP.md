@@ -37,9 +37,9 @@ In strict compliance with project governance:
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
 │ Phase 4 │ Deterministic Mapping & SpeechSynthesis  │ COMPLETED  │ Java semantic mapping, Web Speech API    │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ Phase 5 │ MySQL Persistence & JDBC Audit Logging   │ CURRENT    │ MySQL schema, HikariCP, DAOs, history API│
+│ Phase 5 │ MySQL Persistence & JDBC Audit Logging   │ COMPLETED  │ MySQL schema, HikariCP, DAOs, history API│
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ Phase 6 │ Testing, Accuracy Evaluation & Security  │ PLANNED    │ Master test suite, 120-image benchmark  │
+│ Phase 6 │ Testing, Accuracy Evaluation & Security  │ CURRENT    │ Master test suite, 120-image benchmark  │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
 │ Phase 7 │ UI Polishing, Deployment & Final Audit   │ PLANNED    │ Tomcat 10.1 WAR deployment, final review │
 └─────────┴──────────────────────────────────────────┴────────────┴──────────────────────────────────────────┘
@@ -107,21 +107,21 @@ In strict compliance with project governance:
 
 ---
 
-### Phase 5: MySQL Persistence & Recognition Audit History `[CURRENT]`
+### Phase 5: MySQL Persistence & Recognition Audit History `[COMPLETED]`
 * **Objective**: Persist audit logs of recognized gestures into MySQL and display them in a filterable table.
 * **Required Implementation**:
   * Database schema setup (`schema.sql` creating `gesture_history`).
-  * `DatabaseConnection.java` configuring HikariCP DataSource.
-  * `RecognitionLogDAO.java` executing parameterized INSERT, SELECT, and DELETE statements.
-  * `HistoryServlet.java` (`GET /api/history`, `DELETE /api/history`).
+  * `DBConnection.java` configuring HikariCP DataSource.
+  * `GestureHistoryDAO.java` executing parameterized INSERT, SELECT, and DELETE statements.
+  * `GestureHistoryServlet.java` (`GET /api/history`, `DELETE /api/history`).
   * Frontend table renderer `history.js` with gesture filtering.
-* **Important Files**: `com/gesturetalk/dao/RecognitionLogDAO.java`, `com/gesturetalk/controller/HistoryServlet.java`.
+* **Important Files**: `com/gesturetalk/dao/GestureHistoryDAO.java`, `com/gesturetalk/controller/GestureHistoryServlet.java`.
 * **Dependencies**: `com.mysql:mysql-connector-j:8.4.0`, `com.zaxxer:HikariCP:5.1.0`.
 * **Completion Criteria**: Every successful recognition inserts a row in `gesture_history`; history table updates dynamically.
 
 ---
 
-### Phase 6: Testing, Accuracy Evaluation & Security Hardening `[PLANNED]`
+### Phase 6: Testing, Accuracy Evaluation & Security Hardening `[CURRENT]`
 * **Objective**: Perform comprehensive verification, security validation, and evaluate accuracy on the planned 120-image benchmark.
 * **Required Implementation**:
   * Unit tests with JUnit 5 and Mockito.

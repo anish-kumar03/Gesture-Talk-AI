@@ -169,3 +169,4 @@ class SpeechManager {
 
 // Expose globally
 window.SpeechManager = SpeechManager;
+
