@@ -227,3 +227,4 @@ window.historyManager = new HistoryManager();
 document.addEventListener('DOMContentLoaded', () => {
     window.historyManager.init();
 });
+

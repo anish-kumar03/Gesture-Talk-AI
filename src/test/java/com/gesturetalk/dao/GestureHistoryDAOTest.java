@@ -169,3 +169,4 @@ class GestureHistoryDAOTest {
         assertTrue(id > 0);
     }
 }
+

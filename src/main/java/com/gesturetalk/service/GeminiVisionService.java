@@ -149,7 +149,8 @@ public class GeminiVisionService implements VisionService {
             throw ex;
         } catch (Exception ex) {
             String errorMsg = ex.getMessage() != null ? ex.getMessage() : ex.toString();
-            logger.error("Gemini Vision API call failed: {}", errorMsg, ex);
+            String sanitizedMsg = sanitizeErrorMessage(errorMsg);
+            logger.error("Gemini Vision API call failed: {}", sanitizedMsg);
 
             if (errorMsg.contains("429") || errorMsg.contains("RESOURCE_EXHAUSTED")) {
                 throw new AIServiceException("AI_RATE_LIMIT", 
@@ -165,8 +166,16 @@ public class GeminiVisionService implements VisionService {
             }
 
             throw new AIServiceException("AI_SERVICE_ERROR", 
-                "Failed to process image with Gemini Vision: " + errorMsg, 502, ex);
+                "Failed to process image with Gemini Vision: " + sanitizedMsg, 502, ex);
         }
+    }
+
+    /**
+     * Sanitizes error messages to ensure API keys and credentials are never exposed in logs or responses.
+     */
+    private static String sanitizeErrorMessage(String msg) {
+        if (msg == null) return "Unknown AI service error.";
+        return msg.replaceAll("(?i)(key|api[_-]?key)=([a-zA-Z0-9_\\-]+)", "$1=REDACTED");
     }
 
     public String getModelName() {

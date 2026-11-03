@@ -279,13 +279,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 8. Core AI Analysis Dispatcher (POST /api/recognize)
+    let isRecognitionInProgress = false;
+
     if (btnAnalyzeGesture) {
         btnAnalyzeGesture.addEventListener('click', async () => {
+            if (isRecognitionInProgress) {
+                console.warn('Recognition already in progress; suppressing duplicate click event.');
+                return;
+            }
+
             if (!currentCapturedPayload || !currentCapturedPayload.blob) {
                 showToast('No Image', 'Please capture a frame or upload an image first.', 'warning');
                 return;
             }
 
+            isRecognitionInProgress = true;
             setAnalyzingState(true);
 
             try {
@@ -333,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderRecognitionError(error.message);
                 showToast('Recognition Failed', error.message, 'danger');
             } finally {
+                isRecognitionInProgress = false;
                 setAnalyzingState(false);
             }
         });

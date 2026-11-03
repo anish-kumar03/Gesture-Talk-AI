@@ -63,3 +63,4 @@ public interface HistoryDAO {
      */
     int count() throws SQLException;
 }
+

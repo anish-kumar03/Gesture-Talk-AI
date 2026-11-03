@@ -25,3 +25,4 @@ CREATE TABLE IF NOT EXISTS `gesture_history` (
 -- Indexes for performance optimization on queries and filtering
 CREATE INDEX `idx_gesture_code` ON `gesture_history` (`gesture_code`);
 CREATE INDEX `idx_created_at` ON `gesture_history` (`created_at`);
+
