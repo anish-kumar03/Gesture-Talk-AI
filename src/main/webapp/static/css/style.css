@@ -1,0 +1,547 @@
+/**
+ * GestureTalk AI — Primary Application Stylesheet
+ * Theme: Dark / Deep Navy & Obsidian with Electric Blue & Purple Accents
+ * Standard: CSS3 / Bootstrap 5.3 Enhancement
+ */
+
+:root {
+    --gt-bg-dark: #070a12;
+    --gt-bg-surface: #0e1424;
+    --gt-bg-card: rgba(17, 24, 43, 0.75);
+    --gt-bg-card-hover: rgba(23, 32, 58, 0.85);
+    --gt-border-glass: rgba(255, 255, 255, 0.08);
+    --gt-border-glow: rgba(139, 92, 246, 0.35);
+
+    --gt-primary: #8b5cf6;
+    --gt-primary-light: #a78bfa;
+    --gt-primary-dark: #6d28d9;
+    --gt-secondary: #06b6d4;
+    --gt-secondary-light: #38bdf8;
+    --gt-accent-blue: #3b82f6;
+    --gt-accent-pink: #ec4899;
+
+    --gt-text-main: #f8fafc;
+    --gt-text-muted: #94a3b8;
+    --gt-text-dim: #64748b;
+
+    --gt-success: #10b981;
+    --gt-warning: #f59e0b;
+    --gt-danger: #ef4444;
+
+    --gt-radius-sm: 8px;
+    --gt-radius-md: 14px;
+    --gt-radius-lg: 20px;
+    --gt-radius-xl: 28px;
+
+    --gt-shadow-card: 0 12px 36px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+    --gt-shadow-glow: 0 0 25px rgba(139, 92, 246, 0.35);
+    --gt-shadow-cyan: 0 0 25px rgba(6, 182, 212, 0.35);
+}
+
+/* Base Setup */
+html, body {
+    background-color: var(--gt-bg-dark);
+    color: var(--gt-text-main);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+/* Background Ambient Glows */
+body::before {
+    content: '';
+    position: fixed;
+    top: -150px;
+    left: 10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(7, 10, 18, 0) 70%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    bottom: -100px;
+    right: 5%;
+    width: 650px;
+    height: 650px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, rgba(7, 10, 18, 0) 70%);
+    filter: blur(90px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Typography Enhancements */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.text-gradient-purple-blue {
+    background: linear-gradient(135deg, #c084fc 0%, #818cf8 50%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cyan {
+    background: linear-gradient(135deg, #38bdf8 0%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Navbar */
+.gt-navbar {
+    background: rgba(7, 10, 18, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--gt-border-glass);
+    transition: all 0.3s ease;
+}
+
+.gt-brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.gt-logo-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--gt-primary) 0%, var(--gt-secondary) 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+    font-size: 1.2rem;
+}
+
+.gt-nav-link {
+    color: var(--gt-text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 8px 16px;
+    border-radius: var(--gt-radius-sm);
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.gt-nav-link:hover, .gt-nav-link.active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.gt-badge-live {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gt-pulse-dot {
+    width: 7px;
+    height: 7px;
+    background-color: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Glassmorphism Cards */
+.gt-card {
+    background: var(--gt-bg-card);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--gt-border-glass);
+    border-radius: var(--gt-radius-lg);
+    box-shadow: var(--gt-shadow-card);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    overflow: hidden;
+}
+
+.gt-card-header {
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--gt-border-glass);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.gt-card-body {
+    padding: 24px;
+}
+
+/* Mode Switcher Pills */
+.gt-mode-pills {
+    display: flex;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--gt-border-glass);
+}
+
+.gt-mode-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--gt-text-muted);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.gt-mode-btn.active {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(6, 182, 212, 0.25));
+    color: #ffffff;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Webcam Container */
+.gt-viewfinder-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000000;
+    border-radius: var(--gt-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--gt-border-glass);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gt-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Mirror camera stream */
+    display: none;
+}
+
+.gt-video.active {
+    display: block;
+}
+
+.gt-viewfinder-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    color: var(--gt-text-dim);
+}
+
+.gt-viewfinder-placeholder i {
+    font-size: 3.5rem;
+    color: rgba(148, 163, 184, 0.3);
+    margin-bottom: 16px;
+}
+
+/* Laser Scanline Effect for Camera */
+.gt-scanline {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--gt-secondary-light) 50%, transparent 100%);
+    box-shadow: 0 0 15px var(--gt-secondary-light);
+    animation: scanAnim 2.5s infinite linear;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.gt-scanline.active {
+    display: block;
+}
+
+@keyframes scanAnim {
+    0% { top: 0%; opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { top: 98%; opacity: 0; }
+}
+
+/* Viewfinder Overlay Badge */
+.gt-viewfinder-status {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--gt-text-main);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* File Upload Dropzone */
+.gt-dropzone {
+    border: 2px dashed rgba(139, 92, 246, 0.35);
+    border-radius: var(--gt-radius-md);
+    background: rgba(139, 92, 246, 0.03);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+}
+
+.gt-dropzone:hover, .gt-dropzone.dragover {
+    border-color: var(--gt-secondary-light);
+    background: rgba(6, 182, 212, 0.06);
+    box-shadow: var(--gt-shadow-cyan);
+    transform: translateY(-2px);
+}
+
+.gt-dropzone-icon {
+    font-size: 3rem;
+    color: var(--gt-primary-light);
+    margin-bottom: 12px;
+    transition: transform 0.2s ease;
+}
+
+.gt-dropzone:hover .gt-dropzone-icon {
+    transform: scale(1.1);
+    color: var(--gt-secondary-light);
+}
+
+/* Button System */
+.gt-btn-primary {
+    background: linear-gradient(135deg, var(--gt-primary) 0%, var(--gt-primary-dark) 100%);
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: var(--gt-radius-sm);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.gt-btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--gt-shadow-glow);
+    color: #ffffff;
+}
+
+.gt-btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--gt-text-main);
+    border: 1px solid var(--gt-border-glass);
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: var(--gt-radius-sm);
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.gt-btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.gt-btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: var(--gt-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.gt-btn-danger:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.25);
+    color: #ffffff;
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.gt-btn-primary:disabled, .gt-btn-secondary:disabled, .gt-btn-danger:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Captured Preview Thumbnail */
+.gt-preview-wrapper {
+    position: relative;
+    border-radius: var(--gt-radius-md);
+    overflow: hidden;
+    border: 1px solid var(--gt-border-glass);
+    background: #000;
+    max-height: 180px;
+}
+
+.gt-preview-img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    background: #080d1a;
+}
+
+/* Result Panel Styling */
+.gt-result-badge {
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--gt-primary-light);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.gt-result-phrase {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.4;
+    padding: 16px 20px;
+    border-radius: var(--gt-radius-md);
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 4px solid var(--gt-secondary-light);
+}
+
+.gt-confidence-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.gt-confidence-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gt-secondary) 0%, var(--gt-primary) 100%);
+    border-radius: 9999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gesture Reference Cards */
+.gt-gesture-card {
+    background: rgba(17, 24, 43, 0.6);
+    border: 1px solid var(--gt-border-glass);
+    border-radius: var(--gt-radius-md);
+    padding: 22px 18px;
+    text-align: center;
+    transition: all 0.25s ease;
+    height: 100%;
+}
+
+.gt-gesture-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+    background: var(--gt-bg-card-hover);
+}
+
+.gt-gesture-icon-wrap {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 14px auto;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gt-primary-light);
+    font-size: 1.8rem;
+    transition: all 0.25s ease;
+}
+
+.gt-gesture-card:hover .gt-gesture-icon-wrap {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.3));
+    color: #ffffff;
+    transform: scale(1.08);
+}
+
+/* Toast Container */
+.gt-toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1080;
+}
+
+.gt-toast {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--gt-border-glass);
+    color: #ffffff;
+    border-radius: var(--gt-radius-md);
+    box-shadow: var(--gt-shadow-card);
+}
+
+/* Footer */
+.gt-footer {
+    border-top: 1px solid var(--gt-border-glass);
+    background: rgba(7, 10, 18, 0.9);
+    padding: 40px 0 24px 0;
+    margin-top: 60px;
+    color: var(--gt-text-dim);
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .gt-viewfinder-container {
+        aspect-ratio: 4 / 3;
+    }
+    .gt-result-phrase {
+        font-size: 1.15rem;
+    }
+}
+

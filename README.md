@@ -134,3 +134,4 @@ Comprehensive technical architecture documentation is available in the [`docs/`]
 
 ## 📄 License & Academic Attribution
 Developed as an Advanced Internet Programming project adhering to strict academic integrity, zero-disk user privacy, and pure Jakarta EE software architecture.
+
