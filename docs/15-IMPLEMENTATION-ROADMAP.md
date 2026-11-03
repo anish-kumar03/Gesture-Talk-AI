@@ -33,9 +33,9 @@ In strict compliance with project governance:
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
 │ Phase 2 │ Frontend, Webcam Capture & File Uploads  │ COMPLETED  │ JSP views, MediaDevices, Canvas, CSS/JS  │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ Phase 3 │ Gemini Vision SDK & Classification       │ CURRENT    │ Google GenAI SDK integration, prompts    │
+│ Phase 3 │ Gemini Vision SDK & Classification       │ COMPLETED  │ Google GenAI SDK integration, prompts    │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
-│ Phase 4 │ Deterministic Mapping & SpeechSynthesis  │ PLANNED    │ Java semantic mapping, Web Speech API    │
+│ Phase 4 │ Deterministic Mapping & SpeechSynthesis  │ CURRENT    │ Java semantic mapping, Web Speech API    │
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
 │ Phase 5 │ MySQL Persistence & JDBC Audit Logging   │ PLANNED    │ MySQL schema, HikariCP, DAOs, history API│
 ├─────────┼──────────────────────────────────────────┼────────────┼──────────────────────────────────────────┤
@@ -82,7 +82,7 @@ In strict compliance with project governance:
 
 ---
 
-### Phase 3: Gemini API Integration & Visual Classification `[PLANNED]`
+### Phase 3: Gemini API Integration & Visual Classification `[COMPLETED]`
 * **Objective**: Connect the Java backend to the Google Gemini Multimodal Vision API using the official Google GenAI Java SDK.
 * **Required Implementation**:
   * `GeminiVisionService.java` using `com.google.genai.Client`.

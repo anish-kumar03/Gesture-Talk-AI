@@ -37,7 +37,7 @@
             <div class="d-flex align-items-center gap-3 order-lg-3">
                 <span class="gt-badge-live">
                     <span class="gt-pulse-dot"></span>
-                    <span>Phase 2: UI & Capture</span>
+                    <span>Phase 3: Gemini Vision</span>
                 </span>
                 <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-label="Toggle navigation">
                     <i class="bi bi-list fs-2 text-white"></i>
@@ -186,9 +186,16 @@
                                         <div class="small text-muted mb-1">Source: <span id="previewSource" class="text-white fw-semibold">Live Snapshot</span></div>
                                         <div class="small text-muted mb-1">Dimensions: <span id="previewDimensions" class="text-white fw-semibold">1280 × 720 px</span></div>
                                         <div class="small text-muted mb-2">Byte Size: <span id="previewSize" class="text-white fw-semibold">84.5 KB</span></div>
-                                        <div class="badge bg-success-subtle text-success border border-success-subtle small">
-                                            <i class="bi bi-shield-check me-1"></i> Verified JPEG Blob
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                                <i class="bi bi-shield-check me-1"></i> Verified In-Memory
+                                            </span>
                                         </div>
+                                        <button type="button" class="gt-btn-primary w-100" id="btnAnalyzeGesture">
+                                            <i class="bi bi-cpu-fill text-warning"></i>
+                                            <span id="analyzeBtnText">Analyze Gesture with Gemini</span>
+                                            <span id="analyzeSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -207,7 +214,7 @@
                             <h5 class="mb-0">Recognition & Speech</h5>
                         </div>
                         <span class="badge rounded-pill bg-dark border border-secondary text-light small px-2 py-1">
-                            Phase 2
+                            Phase 3 Active
                         </span>
                     </div>
 

@@ -1,7 +1,7 @@
 /**
  * GestureTalk AI — Central Client Application Coordinator
- * Phase 2: Frontend, Webcam Capture & Manual Image Upload
- * Strictly maintains architectural boundaries: zero fake AI predictions, zero business logic in JS.
+ * Phase 3: Gemini Vision Multimodal Recognition & Audio Synthesis
+ * Strictly maintains architectural boundaries: zero business logic in JS, zero API keys in client.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,13 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraStatusBadge = document.getElementById('cameraStatusBadge');
     const cameraStatusText = document.getElementById('cameraStatusText');
 
-    // Preview Container
+    // Preview Container & Actions
     const previewContainer = document.getElementById('previewContainer');
     const previewImage = document.getElementById('previewImage');
     const previewDimensions = document.getElementById('previewDimensions');
     const previewSize = document.getElementById('previewSize');
     const previewSource = document.getElementById('previewSource');
     const btnClearPreview = document.getElementById('btnClearPreview');
+    const btnAnalyzeGesture = document.getElementById('btnAnalyzeGesture');
+    const analyzeBtnText = document.getElementById('analyzeBtnText');
+    const analyzeSpinner = document.getElementById('analyzeSpinner');
 
     // Result Panel
     const resultGestureBadge = document.getElementById('resultGestureBadge');
@@ -38,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultExplanationText = document.getElementById('resultExplanationText');
     const devModeBanner = document.getElementById('devModeBanner');
 
-    // Speech Controls (Phase 2 Preview)
+    // Speech Controls
     const voiceSelect = document.getElementById('voiceSelect');
     const voiceRate = document.getElementById('voiceRate');
     const voicePitch = document.getElementById('voicePitch');
@@ -58,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let currentCapturedPayload = null;
+    let currentSourceType = 'WEBCAM';
 
     // 3. Tab Mode Switching
     modeBtnWebcam.addEventListener('click', () => {
@@ -65,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modeBtnUpload.classList.remove('active');
         webcamSection.classList.remove('d-none');
         uploadSection.classList.add('d-none');
+        currentSourceType = 'WEBCAM';
     });
 
     modeBtnUpload.addEventListener('click', () => {
@@ -72,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modeBtnWebcam.classList.remove('active');
         uploadSection.classList.remove('d-none');
         webcamSection.classList.add('d-none');
+        currentSourceType = 'UPLOAD';
     });
 
     // 4. Webcam Control Listeners
@@ -141,24 +147,25 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Upload Rejected', error.message, 'warning');
     };
 
-    // 6. Preview & Display Handlers
+    // 6. Preview Display & Dispatch Handlers
     function displayCapturedPayload(payload, source) {
         currentCapturedPayload = payload;
+        currentSourceType = source;
         previewImage.src = payload.dataUrl;
         previewDimensions.textContent = `${payload.width} × ${payload.height} px`;
         previewSize.textContent = `${(payload.sizeBytes / 1024).toFixed(1)} KB`;
         previewSource.textContent = source === 'WEBCAM' ? 'Live Webcam Snapshot' : `Uploaded File (${payload.name || 'Image'})`;
         previewContainer.classList.remove('d-none');
 
-        // Update Result Panel to show Phase 2 Verification State
+        // Initial preview state before analysis
         resultGestureBadge.className = 'gt-result-badge text-warning border-warning';
-        resultGestureBadge.innerHTML = '<i class="bi bi-camera-fill me-2"></i>FRAME READY';
-        resultGestureName.textContent = 'Frame Captured & Verified';
-        resultMessageText.textContent = 'Frame payload rasterized in memory. In Phase 3, this JPEG buffer will be dispatched to the Gemini Vision Servlet.';
+        resultGestureBadge.innerHTML = '<i class="bi bi-clock-history me-2"></i>READY FOR ANALYSIS';
+        resultGestureName.textContent = 'Frame Captured in Memory';
+        resultMessageText.textContent = 'Click "Analyze Gesture with Gemini" to trigger multimodal AI classification.';
         resultConfidenceBar.style.width = '100%';
-        resultConfidenceVal.textContent = '100% Client Ready';
-        resultExplanationText.textContent = `Source: ${source} | Format: ${payload.mimeType} | Byte Size: ${payload.sizeBytes.toLocaleString()} bytes.`;
-        devModeBanner.classList.remove('d-none');
+        resultConfidenceVal.textContent = '100% In-Memory';
+        resultExplanationText.textContent = `Source: ${source} | Format: ${payload.mimeType} | Size: ${payload.sizeBytes.toLocaleString()} bytes.`;
+        devModeBanner.classList.add('d-none');
     }
 
     btnClearPreview.addEventListener('click', () => {
@@ -168,6 +175,131 @@ document.addEventListener('DOMContentLoaded', () => {
         upload.reset();
         resetResultPanel();
     });
+
+    // 7. Core AI Analysis Dispatcher (POST /api/recognize)
+    if (btnAnalyzeGesture) {
+        btnAnalyzeGesture.addEventListener('click', async () => {
+            if (!currentCapturedPayload || !currentCapturedPayload.blob) {
+                showToast('No Image', 'Please capture a frame or upload an image first.', 'warning');
+                return;
+            }
+
+            setAnalyzingState(true);
+
+            try {
+                const formData = new FormData();
+                const fileName = currentSourceType === 'WEBCAM' ? 'webcam-snapshot.jpg' : (currentCapturedPayload.name || 'upload.jpg');
+                formData.append('image', currentCapturedPayload.blob, fileName);
+                formData.append('sourceType', currentSourceType);
+
+                // Compute context path dynamically
+                const endpoint = (window.location.pathname.endsWith('/') 
+                    ? window.location.pathname.slice(0, -1) 
+                    : window.location.pathname).replace(/\/index\.jsp$/, '') + '/api/recognize';
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || `Server responded with HTTP ${response.status}`);
+                }
+
+                // Render successful recognition outcome
+                renderRecognitionSuccess(data);
+                showToast('Recognition Complete', `Recognized: ${data.displayName} (${(data.confidence * 100).toFixed(1)}%)`, 'success');
+
+                // Trigger browser SpeechSynthesis
+                if (data.mappedMessage) {
+                    speakMessage(data.mappedMessage);
+                }
+
+            } catch (error) {
+                console.error('Recognition error:', error);
+                renderRecognitionError(error.message);
+                showToast('Recognition Failed', error.message, 'danger');
+            } finally {
+                setAnalyzingState(false);
+            }
+        });
+    }
+
+    function setAnalyzingState(isAnalyzing) {
+        if (!btnAnalyzeGesture) return;
+        btnAnalyzeGesture.disabled = isAnalyzing;
+        btnCaptureGesture.disabled = isAnalyzing;
+
+        if (isAnalyzing) {
+            analyzeBtnText.textContent = 'Analyzing with Gemini...';
+            analyzeSpinner.classList.remove('d-none');
+            resultGestureBadge.className = 'gt-result-badge text-info border-info';
+            resultGestureBadge.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>CLASSIFYING';
+            resultGestureName.textContent = 'Sending Multimodal Payload...';
+            resultMessageText.textContent = 'Gemini Vision model is evaluating hand posture...';
+        } else {
+            analyzeBtnText.textContent = 'Analyze Gesture with Gemini';
+            analyzeSpinner.classList.add('d-none');
+            btnCaptureGesture.disabled = !webcam.isStreaming;
+        }
+    }
+
+    function renderRecognitionSuccess(data) {
+        const code = data.gestureCode || 'UNKNOWN';
+        const confidencePct = Math.round(data.confidence * 100);
+
+        // Visual Badge Styling per Gesture Type
+        let badgeClass = 'text-secondary border-secondary';
+        let badgeIcon = 'bi-question-diamond-fill';
+
+        if (code === 'THUMBS_UP') {
+            badgeClass = 'text-success border-success';
+            badgeIcon = 'bi-hand-thumbs-up-fill';
+        } else if (code === 'THUMBS_DOWN') {
+            badgeClass = 'text-danger border-danger';
+            badgeIcon = 'bi-hand-thumbs-down-fill';
+        } else if (code === 'OPEN_PALM') {
+            badgeClass = 'text-info border-info';
+            badgeIcon = 'bi-hand-index-thumb';
+        } else if (code === 'V_SIGN') {
+            badgeClass = 'text-purple border-purple';
+            badgeIcon = 'bi-peace';
+        } else if (code === 'INDEX_POINTING') {
+            badgeClass = 'text-warning border-warning';
+            badgeIcon = 'bi-hand-index-fill';
+        }
+
+        resultGestureBadge.className = `gt-result-badge ${badgeClass}`;
+        resultGestureBadge.innerHTML = `<i class="bi ${badgeIcon} me-2"></i>${code}`;
+        resultGestureName.textContent = data.displayName || code;
+        resultMessageText.textContent = data.mappedMessage || 'No message mapped.';
+
+        resultConfidenceBar.style.width = `${confidencePct}%`;
+        resultConfidenceVal.textContent = `${confidencePct}% (${data.meetsThreshold ? 'Verified' : 'Ambiguous'})`;
+
+        resultExplanationText.textContent = data.explanation || 'Analyzed via Google Gemini Vision.';
+        devModeBanner.classList.add('d-none');
+    }
+
+    function renderRecognitionError(errorMessage) {
+        resultGestureBadge.className = 'gt-result-badge text-danger border-danger';
+        resultGestureBadge.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>ERROR';
+        resultGestureName.textContent = 'Recognition Encountered an Error';
+        resultMessageText.textContent = errorMessage;
+        resultConfidenceBar.style.width = '0%';
+        resultConfidenceVal.textContent = '0%';
+        resultExplanationText.textContent = 'Please ensure the server environment variable GEMINI_API_KEY is configured and active.';
+
+        if (errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('AI_CONFIG_ERROR')) {
+            devModeBanner.classList.remove('d-none');
+            devModeBanner.innerHTML = `
+                <i class="bi bi-key-fill text-warning me-1"></i>
+                <strong>API Key Required:</strong> Set the <code>GEMINI_API_KEY</code> environment variable on your machine and restart Tomcat/IDE.
+            `;
+        }
+    }
 
     function resetResultPanel() {
         resultGestureBadge.className = 'gt-result-badge text-muted border-secondary';
@@ -195,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 7. Speech Synthesis Initialization (Phase 2 Preview & Verification)
+    // 8. Speech Synthesis
     function populateVoices() {
         if (!('speechSynthesis' in window)) {
             voiceSelect.innerHTML = '<option disabled selected>Speech Synthesis Unsupported</option>';
@@ -235,17 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
         pitchValue.textContent = `${parseFloat(voicePitch.value).toFixed(1)}`;
     });
 
-    btnTestSpeech.addEventListener('click', () => {
-        if (!('speechSynthesis' in window)) {
-            showToast('Audio Notice', 'SpeechSynthesis is not supported in this browser.', 'warning');
-            return;
-        }
+    function speakMessage(text) {
+        if (!('speechSynthesis' in window) || !text) return;
 
-        const phrase = resultMessageText.textContent.includes('Frame payload rasterized')
-            ? 'GestureTalk AI frontend is ready. In Phase 3, this speech engine will vocalize recognized gestures.'
-            : 'Hello! GestureTalk AI voice engine is operational.';
-
-        const utterance = new SpeechSynthesisUtterance(phrase);
+        const utterance = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
         if (voiceSelect.value !== '' && voices[voiceSelect.value]) {
             utterance.voice = voices[voiceSelect.value];
@@ -253,12 +378,19 @@ document.addEventListener('DOMContentLoaded', () => {
         utterance.rate = parseFloat(voiceRate.value) || 1.0;
         utterance.pitch = parseFloat(voicePitch.value) || 1.0;
 
-        window.speechSynthesis.cancel(); // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
+    }
+
+    btnTestSpeech.addEventListener('click', () => {
+        const text = resultMessageText.textContent.includes('Start the webcam') 
+            ? 'GestureTalk AI voice engine is active and ready.' 
+            : resultMessageText.textContent;
+        speakMessage(text);
         showToast('Speech Synthesized', 'Audio vocalization triggered through browser engine.', 'info');
     });
 
-    // 8. Toast Helper
+    // 9. Toast Notification Helper
     function showToast(title, message, variant = 'info') {
         const toastEl = document.getElementById('appToast');
         const toastTitle = document.getElementById('toastTitle');
@@ -268,20 +400,18 @@ document.addEventListener('DOMContentLoaded', () => {
         toastTitle.textContent = title;
         toastBody.textContent = message;
 
-        // Visual coloring
         let badgeColor = '#38bdf8';
         if (variant === 'success') badgeColor = '#10b981';
         if (variant === 'danger') badgeColor = '#ef4444';
         if (variant === 'warning') badgeColor = '#f59e0b';
         toastHeader.style.borderLeft = `4px solid ${badgeColor}`;
 
-        const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        const toast = new bootstrap.Toast(toastEl, { delay: 4500 });
         toast.show();
     }
 
-    // Window cleanup on navigation / unload
+    // Cleanup tracks on page unload
     window.addEventListener('beforeunload', () => {
         webcam.stop();
     });
 });
-
