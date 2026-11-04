@@ -417,10 +417,29 @@ document.addEventListener('DOMContentLoaded', () => {
             devModeBanner.classList.remove('d-none');
             devModeBanner.innerHTML = `
                 <i class="bi bi-key-fill text-warning me-1"></i>
-                <strong>API Key Required:</strong> Set the <code>GEMINI_API_KEY</code> environment variable on your machine and restart Tomcat/IDE.
+                <strong>API Key Required:</strong> Set the <code>GEMINI_API_KEY</code> environment variable on your server and restart Tomcat.
+            `;
+        } else if (errorMessage.includes('AI_RATE_LIMIT') || errorMessage.includes('rate limit')) {
+            devModeBanner.classList.remove('d-none');
+            devModeBanner.innerHTML = `
+                <i class="bi bi-hourglass-split text-info me-1"></i>
+                <strong>Rate Limit Notice:</strong> Gemini Vision API quota reached. Please pause a few seconds and try again.
             `;
         }
     }
+
+    // Auto-collapse mobile navigation menu on item click
+    document.querySelectorAll('.navbar-nav .gt-nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const navCollapse = document.getElementById('navContent');
+            if (navCollapse && navCollapse.classList.contains('show')) {
+                const bsCollapse = bootstrap.Collapse.getInstance(navCollapse);
+                if (bsCollapse) {
+                    bsCollapse.hide();
+                }
+            }
+        });
+    });
 
     function resetResultPanel() {
         resultGestureBadge.className = 'gt-result-badge text-muted border-secondary';

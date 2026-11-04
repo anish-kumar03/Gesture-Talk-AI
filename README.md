@@ -7,6 +7,8 @@
 [![Apache Tomcat](https://img.shields.io/badge/Tomcat-10.1%2B-yellow.svg)](https://tomcat.apache.org/)
 [![Google Gemini API](https://img.shields.io/badge/Gemini%20API-Multimodal%20Vision-purple.svg)](https://ai.google.dev/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-00758F.svg)](https://www.mysql.com/)
+[![Tests Passing](https://img.shields.io/badge/Tests-87%20Passed%20(100%25)-success.svg)](docs/TESTING.md)
+[![Release](https://img.shields.io/badge/Release-v1.0.0%20Production-green.svg)](docs/15-IMPLEMENTATION-ROADMAP.md)
 
 ---
 
@@ -72,9 +74,19 @@ The initial release recognizes exactly **five predefined static gestures** and p
 
 ---
 
-## 📚 Technical Documentation Directory
+## 📚 Core System Documentation
 
-Comprehensive technical architecture documentation is available in the [`docs/`](docs/) directory:
+Comprehensive architecture, integration, database, testing, and operations documentation is maintained in the [`docs/`](docs/) directory:
+
+| Document | Description |
+| :--- | :--- |
+| **[Architecture Specification](docs/ARCHITECTURE.md)** | End-to-end MVC architecture, Jakarta Servlets, sequence flows, and component interactions. |
+| **[AI Integration Specification](docs/AI_INTEGRATION.md)** | Google GenAI Java SDK, Gemini 2.5 Flash, structured prompts, and 0.75 confidence thresholding. |
+| **[Database Architecture](docs/DATABASE.md)** | MySQL 8.0+ schema, HikariCP connection pooling, PreparedStatement audit logging, and H2 testing. |
+| **[Testing & QA Specification](docs/TESTING.md)** | 87 automated tests (100% pass), security boundaries, and 30-sample empirical accuracy benchmark. |
+| **[Setup & Deployment Guide](docs/SETUP.md)** | Step-by-step installation, environment variables, database initialization, and Tomcat 10.1 WAR deployment. |
+
+### Supplementary Architectural Documents
 
 | Document | Description |
 | :--- | :--- |

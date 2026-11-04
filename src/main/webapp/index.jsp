@@ -37,7 +37,7 @@
             <div class="d-flex align-items-center gap-3 order-lg-3">
                 <span class="gt-badge-live">
                     <span class="gt-pulse-dot"></span>
-                    <span>Phase 5: MySQL Persistence</span>
+                    <span>v1.0.0 Production Release</span>
                 </span>
                 <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-label="Toggle navigation">
                     <i class="bi bi-list fs-2 text-white"></i>
@@ -135,17 +135,22 @@
                             <!-- Camera Controls Toolbar -->
                             <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
                                 <div class="d-flex gap-2">
-                                    <button type="button" class="gt-btn-primary" id="btnStartCamera">
+                                    <button type="button" class="gt-btn-primary" id="btnStartCamera" aria-label="Start Camera Feed">
                                         <i class="bi bi-play-fill fs-5"></i> Start Camera
                                     </button>
-                                    <button type="button" class="gt-btn-danger" id="btnStopCamera" disabled>
+                                    <button type="button" class="gt-btn-danger" id="btnStopCamera" disabled aria-label="Stop Camera Feed">
                                         <i class="bi bi-stop-fill fs-5"></i> Stop Camera
                                     </button>
                                 </div>
 
-                                <button type="button" class="gt-btn-secondary" id="btnCaptureGesture" disabled>
-                                    <i class="bi bi-camera-fill text-info"></i> Capture Gesture
-                                </button>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary text-info border-0" data-bs-toggle="modal" data-bs-target="#cameraPermissionModal" title="Camera Permissions and Troubleshooting Guide">
+                                        <i class="bi bi-question-circle me-1"></i> Camera Guide
+                                    </button>
+                                    <button type="button" class="gt-btn-secondary" id="btnCaptureGesture" disabled aria-label="Capture Gesture Frame">
+                                        <i class="bi bi-camera-fill text-info"></i> Capture Gesture
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -215,7 +220,7 @@
                             <h5 class="mb-0">Recognition & Speech</h5>
                         </div>
                         <span class="badge rounded-pill bg-dark border border-secondary text-light small px-2 py-1">
-                            Phase 5 Active
+                            <i class="bi bi-shield-check text-success me-1"></i>Production Ready
                         </span>
                     </div>
 
@@ -234,13 +239,13 @@
 
                             <div class="mb-4">
                                 <label class="small text-uppercase text-muted fw-bold mb-2">Recognized Gesture</label>
-                                <h4 class="text-white fw-bold mb-0" id="resultGestureName">No Gesture Captured Yet</h4>
+                                <h4 class="text-white fw-bold mb-0" id="resultGestureName" aria-live="polite">No Gesture Captured Yet</h4>
                             </div>
 
                             <!-- Spoken Phrase Box -->
                             <div class="mb-4">
                                 <label class="small text-uppercase text-muted fw-bold mb-2">Mapped Spoken Message</label>
-                                <div class="gt-result-phrase" id="resultMessageText">
+                                <div class="gt-result-phrase" id="resultMessageText" aria-live="polite">
                                     Start the webcam or upload a photo to capture a hand gesture.
                                 </div>
                             </div>
@@ -259,15 +264,15 @@
                             <!-- AI Reasoning / Explanation -->
                             <div class="mb-4">
                                 <label class="small text-uppercase text-muted fw-bold mb-1">System Diagnostic</label>
-                                <p class="small text-muted mb-0" id="resultExplanationText">
+                                <p class="small text-muted mb-0" id="resultExplanationText" aria-live="polite">
                                     Awaiting image input from the camera or manual upload.
                                 </p>
                             </div>
 
-                            <!-- Development-Only Mode Notice -->
+                            <!-- Diagnostic Guide / Error Notice -->
                             <div class="alert alert-dark d-none border-secondary py-2 px-3 small" id="devModeBanner" style="background: rgba(139, 92, 246, 0.08);">
-                                <i class="bi bi-tools text-warning me-1"></i>
-                                <strong>Phase 2 Development Baseline:</strong> Camera capture and in-memory frame extraction verified. Backend Gemini Vision integration will be connected in Phase 3.
+                                <i class="bi bi-info-circle-fill text-warning me-1"></i>
+                                <span id="devModeBannerText">Backend configuration guidance will appear here.</span>
                             </div>
                         </div>
 
@@ -278,7 +283,7 @@
                                     <i class="bi bi-volume-up-fill text-info me-1"></i> Speech Synthesis Controls
                                 </span>
                                 <!-- Speaking State Indicator -->
-                                <span class="badge rounded-pill bg-dark border border-secondary text-muted small" id="speechStatusBadge">
+                                <span class="badge rounded-pill bg-dark border border-secondary text-muted small" id="speechStatusBadge" aria-live="polite">
                                     <i class="bi bi-soundwave me-1"></i> Idle
                                 </span>
                             </div>
@@ -411,6 +416,36 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- Best Practices & Environmental Guidance Banner -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="p-3 p-md-4 rounded-3" style="background: rgba(13, 20, 36, 0.7); border: 1px solid var(--gt-border-glass);">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-lightbulb-fill text-warning fs-5"></i>
+                        <h6 class="text-white mb-0 fw-bold">Tips for Optimal Recognition Accuracy</h6>
+                    </div>
+                    <div class="row g-3 small text-muted pt-2">
+                        <div class="col-md-3">
+                            <strong class="text-white d-block mb-1"><i class="bi bi-arrows-fullscreen text-info me-1"></i> Framing & Distance</strong>
+                            Position your hand between 0.5 and 1.5 meters from the webcam, centered within the frame.
+                        </div>
+                        <div class="col-md-3">
+                            <strong class="text-white d-block mb-1"><i class="bi bi-brightness-high text-warning me-1"></i> Balanced Lighting</strong>
+                            Ensure your palm and fingers are clearly illuminated; avoid harsh direct backlighting or deep shadows.
+                        </div>
+                        <div class="col-md-3">
+                            <strong class="text-white d-block mb-1"><i class="bi bi-person-check text-primary me-1"></i> Single Hand Focus</strong>
+                            Keep one hand prominently in the frame to prevent multi-hand ambiguity or conflicting signs.
+                        </div>
+                        <div class="col-md-3">
+                            <strong class="text-white d-block mb-1"><i class="bi bi-hand-thumbs-up text-success me-1"></i> Steady Posture</strong>
+                            Hold the hand stationary for half a second before capturing to eliminate motion blur.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -582,6 +617,67 @@
             </div>
             <div class="toast-body small" id="toastBody">
                 Notification message.
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. CAMERA PERMISSION & TROUBLESHOOTING MODAL -->
+    <div class="modal fade" id="cameraPermissionModal" tabindex="-1" aria-labelledby="cameraPermissionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content gt-card text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title d-flex align-items-center gap-2" id="cameraPermissionModalLabel">
+                        <i class="bi bi-camera-video text-primary"></i> Camera Permission &amp; Troubleshooting Guide
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body small text-muted">
+                    <p class="text-white mb-3">If your browser is blocking camera access or showing an error, follow the instructions for your environment:</p>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded h-100" style="background: rgba(0,0,0,0.3); border: 1px solid var(--gt-border-glass);">
+                                <strong class="text-white d-block mb-2"><i class="bi bi-browser-chrome text-warning me-1"></i> Google Chrome &amp; Microsoft Edge</strong>
+                                <ol class="ps-3 mb-0">
+                                    <li>Click the <strong>tune / padlock icon</strong> on the left of the address bar.</li>
+                                    <li>Ensure <strong>Camera</strong> is set to <strong>Allow</strong>.</li>
+                                    <li>Reload the page to start the live video feed.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="p-3 rounded h-100" style="background: rgba(0,0,0,0.3); border: 1px solid var(--gt-border-glass);">
+                                <strong class="text-white d-block mb-2"><i class="bi bi-apple text-info me-1"></i> Apple Safari (macOS &amp; iOS)</strong>
+                                <ol class="ps-3 mb-0">
+                                    <li>On macOS: Open <strong>Safari &gt; Settings &gt; Websites &gt; Camera</strong> and choose <strong>Allow</strong>.</li>
+                                    <li>On iOS: Open <strong>Settings &gt; Safari &gt; Camera</strong> and select <strong>Ask</strong> or <strong>Allow</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded h-100" style="background: rgba(0,0,0,0.3); border: 1px solid var(--gt-border-glass);">
+                                <strong class="text-white d-block mb-2"><i class="bi bi-browser-firefox text-danger me-1"></i> Mozilla Firefox</strong>
+                                <ol class="ps-3 mb-0">
+                                    <li>Click the camera icon with red slash next to the URL.</li>
+                                    <li>Click <strong>Clear Blocked Status</strong> (X).</li>
+                                    <li>Click <strong>Start Camera</strong> again and grant permission.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded h-100" style="background: rgba(0,0,0,0.3); border: 1px solid var(--gt-border-glass);">
+                                <strong class="text-white d-block mb-2"><i class="bi bi-exclamation-triangle text-warning me-1"></i> Device Locked by Another App</strong>
+                                <p class="mb-0">Webcams can only be accessed by one application at a time. Close Zoom, Microsoft Teams, Discord, or any other browser window that might be using the camera.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-light" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
