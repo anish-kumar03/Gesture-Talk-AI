@@ -4,23 +4,24 @@
 | :--- | :--- |
 | **Document ID** | DOC-07 |
 | **Project Name** | GestureTalk AI |
-| **Document Version** | 1.0.0 |
+| **Document Version** | 1.1.0 |
 | **Classification** | AI Integration & Machine Learning Engineering |
-| **Target SDK** | Official Google GenAI Java SDK (`com.google.genai:google-genai:0.1.1`) |
-| **Target Model** | `gemini-2.5-flash` |
+| **Role in Architecture** | Secondary Optional Multimodal Diagnostic Engine |
+| **Target SDK** | Official Google GenAI Java SDK (`com.google.genai:google-genai:1.80.0`) |
+| **Target Model** | `gemini-3.8-flash` (configurable via `GEMINI_MODEL`) |
 | **Parent Document** | [00-PROJECT-OVERVIEW.md](00-PROJECT-OVERVIEW.md) |
 
 ---
 
-## 1. Rationale for Selecting Google Gemini Vision
+## 1. Architectural Role of Google Gemini Vision
 
-Traditional computer vision approaches for hand gesture recognition (such as Haar cascades or custom-trained Convolutional Neural Networks) require extensive training datasets, struggle under varying skin tones and diverse lighting conditions, and demand dedicated GPU hosting infrastructure.
+In the enhanced GestureTalk AI architecture, **Google MediaPipe Gesture Recognizer WebAssembly serves as the primary real-time recognition engine** for continuous live webcam feeds. 
 
-**Google Gemini** (`gemini-2.5-flash`) offers distinct architectural advantages:
-1. **Multimodal Native Understanding**: Ingests raw image pixel buffers alongside textual instructions in a single inference call.
-2. **Environmental Invariance**: Robustly classifies hand postures regardless of background clutter, varying ambient illumination, skin pigmentation, or camera noise.
-3. **Structured JSON Output**: Gemini natively adheres to strict schema constraints, eliminating messy regex extraction from unstructured text.
-4. **Official Java SDK Support**: With `com.google.genai:google-genai`, enterprise Java applications interface natively with Gemini models without manual HTTP boilerplate.
+**Google Gemini Vision** serves as a **powerful secondary and complementary capability**:
+1. **Deep Multimodal Diagnostic Explanations**: When a user captures an in-memory snapshot or uploads an image, Gemini can be invoked to provide rich semantic reasoning, anatomical posture evaluation, and environmental diagnostics.
+2. **Static File Ingestion**: Analyzing complex uploaded images (JPEG, PNG, WebP) where high-level semantic reasoning is desired.
+3. **Resilience & 503 Immunity**: Because real-time webcam tracking runs locally in-browser via MediaPipe, the application maintains 100% core uptime even when Gemini cloud endpoints return HTTP 503 (Model Overloaded) or when an API key is unconfigured.
+4. **Structured JSON Output**: Gemini returns deterministic JSON schemas that feed into the standard Java `GestureRecognitionService` and `GestureMessageMapper`.
 
 ---
 

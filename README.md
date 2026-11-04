@@ -5,29 +5,35 @@
 [![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://www.oracle.com/java/)
 [![Jakarta EE 10](https://img.shields.io/badge/Jakarta%20EE-10-blue.svg)](https://jakarta.ee/)
 [![Apache Tomcat](https://img.shields.io/badge/Tomcat-10.1%2B-yellow.svg)](https://tomcat.apache.org/)
-[![Google Gemini API](https://img.shields.io/badge/Gemini%20API-Multimodal%20Vision-purple.svg)](https://ai.google.dev/)
+[![Google MediaPipe](https://img.shields.io/badge/MediaPipe-WebAssembly%20Live%20AI-00bcd4.svg)](https://developers.google.com/edge/mediapipe/solutions/vision/gesture_recognizer)
+[![Google Gemini API](https://img.shields.io/badge/Gemini%20API-Optional%20Multimodal%20Vision-purple.svg)](https://ai.google.dev/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-00758F.svg)](https://www.mysql.com/)
-[![Tests Passing](https://img.shields.io/badge/Tests-87%20Passed%20(100%25)-success.svg)](docs/TESTING.md)
-[![Release](https://img.shields.io/badge/Release-v1.0.0%20Production-green.svg)](docs/15-IMPLEMENTATION-ROADMAP.md)
+[![Tests Passing](https://img.shields.io/badge/Tests-97%20Passed%20(100%25)-success.svg)](docs/TESTING.md)
+[![Release](https://img.shields.io/badge/Release-v1.1.0%20MediaPipe%20Live-green.svg)](docs/15-IMPLEMENTATION-ROADMAP.md)
 
 ---
 
 ## 📖 Overview
 
-**GestureTalk AI** is an advanced assistive communication web platform designed for non-verbal individuals, post-operative patients, and users in noise-restricted or sterile environments. The application captures webcam frames or static image uploads, classifies predefined static hand gestures via the **Google Gemini Multimodal Vision API** using the official **Google GenAI Java SDK**, maps recognized gestures deterministically to meaningful natural language sentences using Java business logic, and articulates them audibly in the browser via the **Web SpeechSynthesis API**.
+**GestureTalk AI** is an advanced assistive communication web platform designed for non-verbal individuals, post-operative patients, and users in noise-restricted or sterile environments. The application provides:
+1. **Primary Real-Time Recognition**: Continuous 30+ FPS hand gesture tracking and classification executed entirely client-side using **Google MediaPipe Gesture Recognizer WebAssembly (`@mediapipe/tasks-vision`)** with visual hand skeletal landmark overlays.
+2. **Deterministic Java Speech Mapping**: Structured gesture tokens (`THUMBS_UP`, `OPEN_PALM`, etc.) are validated and mapped to authoritative natural language phrases on the backend by `GestureMessageMapper.java`.
+3. **Audio Articulation**: The browser articulates confirmed messages instantly via the **Web SpeechSynthesis API** with built-in consecutive-frame smoothing and duplicate vocalization suppression.
+4. **Secondary Multimodal AI**: Optional **Google Gemini Vision API** integration via the official **Google GenAI Java SDK (`1.80.0`)** for deep diagnostic explanations and static image uploads.
+5. **Zero 503 Downtime**: The application operates with zero latency and 100% functionality even when external cloud AI services are overloaded, rate-limited, or offline.
 
 The project is built as an **academic Advanced Internet Programming showcase** emphasizing:
 * **Java 21 LTS** as the primary backend and domain logic language.
 * **Jakarta EE 10 (Servlets 6.0 & JSP 3.1)** on **Apache Tomcat 10.1+** (no Spring Boot).
-* **Zero Disk Storage**: In-memory ephemeral image processing (`Part.fromBytes()`) ensuring absolute user privacy.
-* **Credential Isolation**: Gemini API keys are isolated on the server and never exposed to the client.
+* **Zero Disk Storage**: In-memory ephemeral image processing ensuring absolute user privacy.
+* **Offline-Ready Client AI**: MediaPipe WebAssembly assets (`.wasm`, `.task`, `.mjs`) bundled locally with automatic CDN fallback.
 * **Relational Persistence**: MySQL audit logging via HikariCP connection pooling and parameterized JDBC `PreparedStatement` queries.
 
 ---
 
 ## ✋ Supported Gestures & Mapped Speech
 
-The initial release recognizes exactly **five predefined static gestures** and provides an explicit **UNKNOWN** fallback:
+The system recognizes **five predefined static gestures** and provides an explicit **UNKNOWN** fallback:
 
 | Gesture Token | Posture Description | Deterministic Output Sentence |
 | :--- | :--- | :--- |
@@ -35,7 +41,7 @@ The initial release recognizes exactly **five predefined static gestures** and p
 | `THUMBS_DOWN` | Closed fist, thumb straight down | *"No, that's incorrect."* |
 | `OPEN_PALM` | Flat open hand, 5 digits extended | *"Please stop or wait."* |
 | `V_SIGN` | Index and middle fingers extended in a V | *"Peace and greetings."* |
-| `INDEX_POINTING` | Single index finger pointing | *"Please look there."* |
+| `INDEX_POINTING` | Single index finger pointing straight upward | *"Please look there."* |
 | `UNKNOWN` | Ambiguous, missing or unsupported gesture | *"Gesture not recognized. Please try again."* |
 
 ---
@@ -43,33 +49,49 @@ The initial release recognizes exactly **five predefined static gestures** and p
 ## 🏗 System Architecture
 
 ```
-                    ┌───────────────────────────────────────────────┐
-                    │               CLIENT BROWSER                  │
-                    │  HTML5 + Bootstrap 5 + Vanilla JavaScript     │
-                    │  [Webcam / Canvas Capture / SpeechSynthesis]  │
-                    └───────────────────────┬───────────────────────┘
-                                            │ Multipart HTTP POST
-                                            ▼
-                    ┌───────────────────────────────────────────────┐
-                    │             JAKARTA EE BACKEND                │
-                    │   Apache Tomcat 10.1  •  Java 21 LTS          │
-                    │  ┌─────────────────────────────────────────┐  │
-                    │  │ Controller Layer: Jakarta Servlets      │  │
-                    │  ├─────────────────────────────────────────┤  │
-                    │  │ Service Layer: Vision & Mapping Logic   │  │
-                    │  ├─────────────────────────────────────────┤  │
-                    │  │ Data Access: JDBC (PreparedStatements)  │  │
-                    │  └────────────────────┬────────────────────┘  │
-                    └───────────────────────┼───────────────────────┘
-                                            │
-                    ┌───────────────────────┴───────────────────────┐
-                    │                                               │
-                    ▼                                               ▼
-     ┌─────────────────────────────┐                 ┌─────────────────────────────┐
-     │      GOOGLE GEMINI API      │                 │      MYSQL 8.0 DATABASE     │
-     │  Official GenAI Java SDK    │                 │  HikariCP Connection Pool   │
-     │  Multimodal Vision Engine   │                 │  Audit & Recognition Logs   │
-     └─────────────────────────────┘                 └─────────────────────────────┘
+                    ┌─────────────────────────────────────────────────────────────┐
+                    │                       CLIENT BROWSER                        │
+                    │  HTML5 + Bootstrap 5 + Vanilla JS + WebAssembly             │
+                    │  ┌───────────────────────────────────────────────────────┐  │
+                    │  │ Google MediaPipe Gesture Recognizer (Primary Engine)  │  │
+                    │  │ - WebAssembly Runtime (vision_wasm_internal.wasm)     │  │
+                    │  │ - 21 Hand Landmark Tracking & Live HUD (30+ FPS)      │  │
+                    │  │ - Consecutive-Frame Smoothing & Debounce Engine       │  │
+                    │  └───────────────────────────┬───────────────────────────┘  │
+                    │                              │ Speech Synthesis API         │
+                    │                              ▼                              │
+                    │              Instant Natural Speech Articulation             │
+                    └──────────────────────────────┬──────────────────────────────┘
+                                                   │
+                   ┌───────────────────────────────┴───────────────────────────────┐
+                   │ JSON POST /api/gesture-result │ Multipart POST /api/recognize  │
+                   ▼                               ▼                               │
+┌──────────────────────────────────────────────────────────────────────────────────┴┐
+│                              JAKARTA EE BACKEND                                   │
+│                        Apache Tomcat 10.1 • Java 21 LTS                           │
+│  ┌─────────────────────────────────────────────────────────────────────────────┐  │
+│  │ Controller Layer: Jakarta Servlets                                          │  │
+│  │ - GestureResultServlet (POST /api/gesture-result) -> Validates & Mappping   │  │
+│  │ - GestureRecognitionServlet (POST /api/recognize) -> Multipart / Gemini     │  │
+│  │ - GestureHistoryServlet (GET/DELETE /api/history) -> Audit Trails           │  │
+│  ├─────────────────────────────────────────────────────────────────────────────┤  │
+│  │ Service Layer: Domain & Mapping Logic                                       │  │
+│  │ - GestureMessageMapper (Deterministic Immutable Catalog)                    │  │
+│  │ - GestureRecognitionService (Confidence Threshold & Coercion)               │  │
+│  ├─────────────────────────────────────────────────────────────────────────────┤  │
+│  │ Data Access Layer: JDBC & HikariCP Connection Pool                          │  │
+│  │ - GestureHistoryDAO (PreparedStatement, SQL Error Resilience)               │  │
+│  └──────────────────────────────────────┬──────────────────────────────────────┘  │
+└─────────────────────────────────────────┼─────────────────────────────────────────┘
+                                          │
+            ┌─────────────────────────────┴─────────────────────────────┐
+            │                                                           │
+            ▼                                                           ▼
+┌───────────────────────────────────────┐   ┌───────────────────────────────────────┐
+│     MYSQL 8.0+ RELATIONAL DATABASE    │   │      GOOGLE GEMINI API (SECONDARY)    │
+│  - Table: gesture_history             │   │  - Official GenAI Java SDK (1.80.0)   │
+│  - Tracks confidence, speech & source │   │  - Optional Deep Multimodal Analysis  │
+└───────────────────────────────────────┘   └───────────────────────────────────────┘
 ```
 
 ---

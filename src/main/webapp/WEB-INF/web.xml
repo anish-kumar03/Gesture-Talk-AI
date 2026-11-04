@@ -23,5 +23,19 @@
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
 
+    <!-- MIME Mappings for MediaPipe WASM and Models -->
+    <mime-mapping>
+        <extension>wasm</extension>
+        <mime-type>application/wasm</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>mjs</extension>
+        <mime-type>text/javascript</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>task</extension>
+        <mime-type>application/octet-stream</mime-type>
+    </mime-mapping>
+
 </web-app>
 

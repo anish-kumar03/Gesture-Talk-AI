@@ -13,51 +13,50 @@
 
 ## 1. Overview of Operational Workflows
 
-GestureTalk AI supports two primary user interaction flows:
-1. **Live Webcam Capture Workflow**: Real-time video preview with instant frame extraction.
-2. **Static Image Upload Workflow**: Manual file selection and drag-and-drop for pre-recorded photos.
-
-Both operational workflows converge on the same secure server-side recognition pipeline, where in-memory validation, Gemini classification, Java message mapping, database persistence, and browser-side speech synthesis occur sequentially.
+GestureTalk AI supports three operational flows:
+1. **Live Real-Time Webcam Recognition Workflow (Primary)**: Continuous client-side video inference loop running on Google MediaPipe WebAssembly with skeletal landmark tracking, consecutive-frame prediction smoothing, and instant speech articulation.
+2. **Snapshot Image Capture Workflow (Secondary / Optional)**: In-memory single-frame snapshot sent to Google Gemini Vision for deep multimodal diagnostic inspection.
+3. **Static Image Upload Workflow**: Manual file selection and drag-and-drop for pre-recorded photos analyzed via the Java servlet pipeline.
 
 ---
 
-## 2. Workflow A: Live Webcam Acquisition & Recognition
+## 2. Workflow A: Real-Time MediaPipe Webcam Recognition (Primary)
 
 ```
-[User Browser]                      [Apache Tomcat / Java]                    [Google Gemini API]
-      │                                       │                                        │
-      │ 1. Request Camera Permission          │                                        │
-      │────(navigator.mediaDevices)───────────┼────────────────────────────────────────┤
-      │                                       │                                        │
-      │ 2. Stream to <video>                  │                                        │
-      │────(Live Viewfinder 30 FPS)───────────┼────────────────────────────────────────┤
-      │                                       │                                        │
-      │ 3. Click "Capture Gesture"            │                                        │
-      │    [Draw to <canvas> & Blob]          │                                        │
-      │                                       │                                        │
-      │ 4. HTTP POST /api/recognize           │                                        │
-      │────(Multipart: image/jpeg blob)──────>│                                        │
-      │                                       │ 5. Validate Image (size, magic bytes)  │
-      │                                       │                                        │
-      │                                       │ 6. Part.fromBytes() + Prompt           │
-      │                                       │────(HTTPS POST /generateContent)──────>│
-      │                                       │                                        │
-      │                                       │ 7. Return JSON Classification          │
-      │                                       │<───({ gesture, confidence, reason })───│
-      │                                       │                                        │
-      │                                       │ 8. Validate Gesture & Map to Message   │
-      │                                       │ 9. Insert into MySQL (gesture_history) │
-      │ 10. HTTP 200 JSON Response            │                                        │
-      │<───({ gesture, message, audioText })──│                                        │
-      │                                       │                                        │
-      │ 11. Render Result Card on UI          │                                        │
-      │ 12. window.speechSynthesis.speak()    │                                        │
-      ▼                                       ▼                                        ▼
+[User Browser & MediaPipe WASM]               [Apache Tomcat / Jakarta EE]             [MySQL Database]
+       │                                                    │                                  │
+       │ 1. Start Camera (30+ FPS)                          │                                  │
+       │    requestAnimationFrame Inference Loop            │                                  │
+       │                                                    │                                  │
+       │ 2. Detect 21 Hand Landmarks & Draw Overlay         │                                  │
+       │    Recognize Gesture (e.g. Thumb_Up: 0.94)         │                                  │
+       │                                                    │                                  │
+       │ 3. Apply Prediction Smoothing                      │                                  │
+       │    (4 Consecutive Frames >= 0.70 Confidence)       │                                  │
+       │    (Enforce Cooldown & Duplicate Suppression)      │                                  │
+       │                                                    │                                  │
+       │ 4. HTTP POST /api/gesture-result                   │                                  │
+       │────({ gestureCode: "THUMBS_UP", confidence: 0.94 })>                                  │
+       │                                                    │ 5. Validate Enum & Confidence    │
+       │                                                    │ 6. Map Speech (MessageMapper)    │
+       │                                                    │ 7. Insert into gesture_history ──>
+       │                                                    │                                  │
+       │ 8. HTTP 200 JSON Response                          │                                  │
+       │<───({ gestureCode, mappedMessage, autoSpeak: true })                                  │
+       │                                                    │                                  │
+       │ 9. Render Result & Live HUD                        │                                  │
+       │ 10. window.speechSynthesis.speak()                 │                                  │
+       ▼                                                    ▼                                  ▼
 ```
 
 ### Detailed Step-by-Step Breakdown:
-1. **User Activation**: The user navigates to the GestureTalk AI web interface (`index.jsp`) and clicks the **"Start Camera"** button.
-2. **Permission & Streaming**: The browser requests video permission. Upon approval, the stream is attached to the on-screen `<video>` element, providing real-time visual feedback so the user can frame their hand properly.
+1. **User Activation**: The user navigates to `index.jsp` and clicks **"Start Camera"**.
+2. **WebAssembly Initialization**: `@mediapipe/tasks-vision` loads locally from `/static/vendor/mediapipe/` (with CDN fallback) and initializes the `gesture_recognizer.task` model.
+3. **Continuous Tracking Loop**: `requestAnimationFrame` feeds frames into `recognizer.recognizeForVideo(video, timestamp)`.
+4. **Skeletal Landmark Overlay**: 21 3D hand landmarks are drawn dynamically onto `#landmarkCanvas` in mirrored alignment with the user's hand.
+5. **Smoothing & Stability Verification**: Before triggering speech, the system requires 4 consecutive identical frames satisfying the $\ge 0.70$ confidence threshold, preventing single-frame jitter or false triggers.
+6. **Backend Persistence & Speech Authorization**: The confirmed token is posted to `/api/gesture-result`. Java validates the payload, applies deterministic sentence mapping, logs the record to MySQL, and authorizes vocalization.
+7. **Immediate Vocalization**: The browser articulates the sentence using the Web SpeechSynthesis API. Re-triggering the same gesture is debounced for 2.5 seconds to prevent audio spamming while the hand is held stationary.
 3. **Capture Trigger**: The user positions their hand in front of the lens in one of the five target postures and clicks **"Capture Gesture"**.
 4. **Canvas Rasterization**: The JavaScript controller captures the current video frame into an off-screen `<canvas>` at its native aspect ratio and invokes `canvas.toBlob(callback, 'image/jpeg', 0.90)`.
 5. **Multipart Transmission**: The blob is appended to a `FormData` object with the field name `image` and `sourceType=WEBCAM` and dispatched via `fetch('/api/recognize', { method: 'POST', body: formData })`.

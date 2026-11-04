@@ -79,10 +79,39 @@ The initial release recognizes exactly **five predefined static hand gestures** 
 * **Ambiguous Cases**: Index and middle fingers pressed tightly together (looks like two-finger pointing); three fingers extended (scout sign).
 
 ### 3.5 `INDEX_POINTING`
-* **Visual Posture**: The index finger is fully extended in a pointing direction, while the thumb, middle, ring, and little fingers are curled into the palm.
-* **Recognition Conditions**: Single prominent extended digit (index). Orientation may point upward, forward, left, or right.
+* **Visual Posture**: The index finger is fully extended pointing straight upward (`Pointing_Up` in MediaPipe taxonomy), while the thumb, middle, ring, and little fingers are curled into the palm.
+* **Recognition Conditions**: Single prominent extended digit (index) pointing predominantly upward within ±45° of vertical orientation.
 * **Deterministic Output Sentence**: `"Please look there."`
 * **Ambiguous Cases**: Middle finger accidentally extended; thumb extended alongside index (L-shape).
+
+---
+
+## 4. MediaPipe Gesture Recognizer Taxonomy Mapping
+
+Google's MediaPipe Gesture Recognizer WebAssembly model emits 7 built-in canonical categories plus unclassified detections. GestureTalk AI maps these directly into the controlled Java vocabulary:
+
+| MediaPipe Model Label | GestureTalk AI Token (`GestureType`) | Java Mapped Sentence | Speech Action |
+| :--- | :--- | :--- | :--- |
+| `Thumb_Up` | `THUMBS_UP` | *"Yes, that's correct."* | Auto-vocalized upon confirmation |
+| `Thumb_Down` | `THUMBS_DOWN` | *"No, that's incorrect."* | Auto-vocalized upon confirmation |
+| `Open_Palm` | `OPEN_PALM` | *"Please stop or wait."* | Auto-vocalized upon confirmation |
+| `Victory` | `V_SIGN` | *"Peace and greetings."* | Auto-vocalized upon confirmation |
+| `Pointing_Up` | `INDEX_POINTING` | *"Please look there."* | Auto-vocalized upon confirmation |
+| `Closed_Fist` | `UNKNOWN` | *"Gesture not recognized. Please try again."* | Muted (unsupported sign) |
+| `ILoveYou` | `UNKNOWN` | *"Gesture not recognized. Please try again."* | Muted (unsupported sign) |
+| `None` / Empty | `UNKNOWN` | *"Gesture not recognized. Please try again."* | Muted (no hand / ambiguous) |
+
+---
+
+## 5. Prediction Smoothing & Duplicate Vocalization Suppression
+
+In real-time continuous video recognition (30+ FPS), instantaneous frame detections fluctuate due to lighting, minor motion blur, and finger transitions. To ensure reliable, stable assistive speech, GestureTalk AI implements a **five-stage client smoothing engine** in `mediapipe-recognizer.js`:
+
+1. **Consecutive Frame Threshold ($N = 4$)**: Single-frame classification spikes are rejected. A gesture must persist across 4 consecutive frames before being considered confirmed.
+2. **Confidence Safety Barrier ($\ge 0.70$)**: Every frame in the consecutive sequence must meet or exceed 0.70 confidence (configurable via `CONFIDENCE_THRESHOLD`).
+3. **Identical Gesture Cooldown (2.5 Seconds)**: After a gesture (e.g. `THUMBS_UP`) is articulated, holding the hand stationary will *not* repeatedly re-trigger speech. A cooldown window of 2500 ms prevents audio spamming.
+4. **Fast Gesture Transition (1.0 Second)**: Changing to a *different* recognized sign (e.g., transitioning from `THUMBS_UP` to `OPEN_PALM`) is responsive, triggering after a shorter 1000 ms transition window once meeting the 4-frame stability criteria.
+5. **No-Hand State Reset**: If no hand is detected for 4 consecutive frames, tracking states are reset, priming the engine for the next sign.
 
 ### 3.6 `UNKNOWN`
 * **Visual Posture**: Any posture not definitively conforming to the five specifications above.

@@ -28,36 +28,38 @@ The architecture strictly adheres to the following core software engineering ten
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 1. PRESENTATION LAYER (Client Browser)                                      │
-│    • HTML5 / JSP (index.jsp, history.jsp)                                   │
-│    • Bootstrap 5 Responsive Grid & UI Components                            │
-│    • JavaScript Client Modules (webcam.js, upload.js, tts.js, app.js)       │
-│    • Native Browser APIs: MediaDevices, Canvas, SpeechSynthesis             │
+│    • HTML5 / JSP (index.jsp) with Dark Glassmorphism AI UI                 │
+│    • Google MediaPipe Tasks Vision WebAssembly (@mediapipe/tasks-vision)    │
+│    • Real-Time Hand Landmark Tracker & Smoothing (mediapipe-recognizer.js)  │
+│    • JavaScript Client Modules (webcam.js, upload.js, tts.js, history.js)   │
+│    • Native Browser APIs: MediaDevices, Canvas, SpeechSynthesis, WebAssembly │
 └──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │ HTTP Requests (Multipart / JSON)
+                                       │ HTTP Requests (JSON / Multipart)
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 2. CONTROLLER LAYER (Jakarta Servlets)                                      │
-│    • GestureRecognitionServlet (/api/recognize)                             │
-│    • HistoryServlet (/api/history)                                          │
-│    • HealthServlet (/api/health)                                            │
-│    • CharacterEncodingFilter & Global Exception Mapping                     │
+│    • GestureResultServlet (/api/gesture-result) [MediaPipe JSON Payloads]   │
+│    • GestureRecognitionServlet (/api/recognize) [Multipart Image / Gemini]  │
+│    • GestureHistoryServlet (/api/history) [Audit Query & Clear]             │
+│    • Global Exception Mapping & Standardized JSON Error Utilities           │
 └──────────────────────────────────────┬──────────────────────────────────────┘
                                        │ Method Calls (DTOs, Records)
                                        ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 3. SERVICE LAYER (Java Business Logic)                                      │
-│    • RecognitionService (Orchestrator of recognition pipeline)              │
-│    • GestureMappingService (Deterministic mapping of gesture → message)     │
-│    • ImageValidationService (MIME, Magic Bytes, Dimensions, Size limits)    │
+│    • GestureRecognitionService (Orchestrator of recognition pipeline)       │
+│    • GestureMessageMapper (Deterministic mapping of gesture → speech)       │
+│    • ImageValidator (MIME, Magic Bytes, Format & Size validation)           │
 └──────────────────────┬───────────────────────────────────────┬──────────────┘
                        │                                       │
                        ▼                                       ▼
 ┌─────────────────────────────────────────┐ ┌─────────────────────────────────┐
-│ 4. AI INTEGRATION LAYER (Google GenAI)  │ │ 5. DATA ACCESS LAYER (JDBC DAO) │
-│    • GeminiVisionService                │ │    • RecognitionLogDAO          │
-│    • Google GenAI Client (0.1.1)        │ │    • DatabaseConnectionPool     │
-│    • Prompt Templates & JSON Parser     │ │      (HikariCP DataSource)      │
-│    • Strict Fallback & Timeout Handler  │ │    • PreparedStatements         │
+│ 4. AI INTEGRATION LAYER                 │ │ 5. DATA ACCESS LAYER (JDBC DAO) │
+│    • Primary: Client MediaPipe WASM     │ │    • GestureHistoryDAO          │
+│    • Secondary: GeminiVisionService     │ │    • DBConnection               │
+│      (Google GenAI Java SDK 1.80.0)     │ │      (HikariCP DataSource)      │
+│    • Strict Fallback & 503 Immunity     │ │    • PreparedStatements         │
+└─────────────────────────────────────────┘ └─────────────────────────────────┘
 └──────────────────────┬──────────────────┘ └─────────────────┬───────────────┘
                        │ HTTPS (TLS 1.3)                      │ TCP / JDBC (Port 3306)
                        ▼                                      ▼

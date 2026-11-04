@@ -118,11 +118,24 @@
                                     <span id="cameraStatusText">Camera Inactive</span>
                                 </div>
 
+                                <!-- Real-Time HUD Overlay -->
+                                <div class="gt-viewfinder-hud" id="cameraHud">
+                                    <span class="badge bg-dark bg-opacity-75 border border-secondary text-info small" id="fpsBadge">
+                                        <i class="bi bi-speedometer2 me-1"></i>-- FPS
+                                    </span>
+                                    <span class="badge bg-dark bg-opacity-75 border border-secondary text-light small" id="handDetectionBadge">
+                                        <i class="bi bi-hand-index me-1"></i>No Hand
+                                    </span>
+                                </div>
+
                                 <!-- Scanning Overlay Effect -->
                                 <div class="gt-scanline" id="cameraScanline"></div>
 
                                 <!-- Video Element -->
                                 <video id="webcamVideo" class="gt-video" autoplay playsinline muted></video>
+
+                                <!-- Landmark Tracking Canvas -->
+                                <canvas id="landmarkCanvas" class="gt-landmark-canvas"></canvas>
 
                                 <!-- Placeholder when camera is stopped -->
                                 <div class="gt-viewfinder-placeholder" id="viewfinderPlaceholder">
@@ -134,21 +147,27 @@
 
                             <!-- Camera Controls Toolbar -->
                             <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center">
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 align-items-center">
                                     <button type="button" class="gt-btn-primary" id="btnStartCamera" aria-label="Start Camera Feed">
                                         <i class="bi bi-play-fill fs-5"></i> Start Camera
                                     </button>
                                     <button type="button" class="gt-btn-danger" id="btnStopCamera" disabled aria-label="Stop Camera Feed">
                                         <i class="bi bi-stop-fill fs-5"></i> Stop Camera
                                     </button>
+                                    <div class="form-check form-switch ms-2 d-none d-sm-inline-flex align-items-center gap-1 mb-0" title="Toggle Continuous Real-Time Recognition via MediaPipe">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="continuousRecognitionToggle" checked>
+                                        <label class="form-check-label small text-info fw-semibold" for="continuousRecognitionToggle">
+                                            Live AI
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div class="d-flex gap-2 align-items-center">
                                     <button type="button" class="btn btn-sm btn-outline-secondary text-info border-0" data-bs-toggle="modal" data-bs-target="#cameraPermissionModal" title="Camera Permissions and Troubleshooting Guide">
-                                        <i class="bi bi-question-circle me-1"></i> Camera Guide
+                                        <i class="bi bi-question-circle me-1"></i> Guide
                                     </button>
-                                    <button type="button" class="gt-btn-secondary" id="btnCaptureGesture" disabled aria-label="Capture Gesture Frame">
-                                        <i class="bi bi-camera-fill text-info"></i> Capture Gesture
+                                    <button type="button" class="gt-btn-secondary" id="btnCaptureGesture" disabled aria-label="Capture Gesture Frame" title="Capture static snapshot for deep analysis">
+                                        <i class="bi bi-camera-fill text-info"></i> Snapshot
                                     </button>
                                 </div>
                             </div>
@@ -219,9 +238,14 @@
                             <i class="bi bi-chat-square-quote text-info fs-5"></i>
                             <h5 class="mb-0">Recognition & Speech</h5>
                         </div>
-                        <span class="badge rounded-pill bg-dark border border-secondary text-light small px-2 py-1">
-                            <i class="bi bi-shield-check text-success me-1"></i>Production Ready
-                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill bg-dark border border-secondary text-info small px-2 py-1" id="engineStatusBadge" title="Real-time on-device client recognition">
+                                <i class="bi bi-cpu-fill text-info me-1"></i>MediaPipe Engine
+                            </span>
+                            <span class="badge rounded-pill bg-dark border border-secondary text-muted small px-2 py-1 d-none d-md-inline-block" id="geminiStatusBadge" title="Multimodal deep diagnostic analysis">
+                                <i class="bi bi-stars text-warning me-1"></i>Gemini: Ready
+                            </span>
+                        </div>
                     </div>
 
                     <div class="gt-card-body flex-grow-1 d-flex flex-column justify-content-between">
@@ -409,7 +433,7 @@
                         <i class="bi bi-hand-index-fill"></i>
                     </div>
                     <h6 class="text-white fw-bold mb-1">INDEX_POINTING</h6>
-                    <p class="small text-muted mb-3">Index finger extended; other fingers curled into palm</p>
+                    <p class="small text-muted mb-3">Index finger pointing straight upward; other fingers curled into palm</p>
                     <div class="p-2 rounded small fw-semibold" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">
                         "Please look there."
                     </div>
@@ -690,6 +714,7 @@
     <script src="${pageContext.request.contextPath}/static/js/upload.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/tts.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/history.js"></script>
+    <script src="${pageContext.request.contextPath}/static/js/mediapipe-recognizer.js"></script>
     <script src="${pageContext.request.contextPath}/static/js/app.js"></script>
 
 </body>

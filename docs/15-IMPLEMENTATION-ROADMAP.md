@@ -144,6 +144,19 @@ In strict compliance with project governance:
 
 ---
 
+### Phase 8: MediaPipe WebAssembly Real-Time Recognition Engine `[COMPLETED]`
+* **Objective**: Transition the primary recognition engine to client-side Google MediaPipe Gesture Recognizer WebAssembly (`@mediapipe/tasks-vision`) to eliminate HTTP 503 model overload, eliminate network latency, and provide real-time 30+ FPS live webcam tracking.
+* **Required Implementation**:
+  * Local bundle and WASM model hosting (`gesture_recognizer.task`, `vision_bundle.mjs`, `wasm/` files) with automatic CDN fallback.
+  * Real-time continuous inference loop via `requestAnimationFrame` with 21-point hand skeleton canvas overlay.
+  * Five-stage client prediction smoothing engine (4 consecutive frames $\ge 0.70$, 2.5s cooldown, 1.0s transition, duplicate vocalization suppression).
+  * Java backend endpoint `POST /api/gesture-result` in `GestureResultServlet.java` for enum validation, sentence mapping, and MySQL audit persistence.
+  * 10 additional unit and integration tests (97 tests total, 100% passing).
+  * Secondary optional Gemini Vision integration for deep multimodal diagnostics without creating a single point of failure.
+* **Completion Criteria**: Live 30+ FPS webcam tracking with instant speech vocalization, complete offline local operation, and 100% passing automated test suite.
+
+---
+
 ## 4. Document Cross-References
 
 * High-level project objectives: [01-PROBLEM-STATEMENT-AND-OBJECTIVES.md](01-PROBLEM-STATEMENT-AND-OBJECTIVES.md)

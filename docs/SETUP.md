@@ -36,9 +36,9 @@ GestureTalk AI keeps all secrets, credentials, and tuning parameters outside the
 
 | Variable Name | Required | Default Value | Description |
 | :--- | :---: | :--- | :--- |
-| `GOOGLE_API_KEY` | **Yes** | *None* | Single primary standard API key obtained from [Google AI Studio](https://aistudio.google.com/) for the Google GenAI Java SDK. |
-| `GEMINI_MODEL` | No | `gemini-3.8-flash` | Configurable multimodal vision model (preferred default: `gemini-3.8-flash`, with `gemini-2.5-flash` fallback). |
-| `CONFIDENCE_THRESHOLD` | No | `0.75` | Minimum classification confidence ($0.0$ to $1.0$) required to accept a gesture. |
+| `GOOGLE_API_KEY` | Optional (MediaPipe runs offline) | *None* | Primary standard API key obtained from [Google AI Studio](https://aistudio.google.com/) for optional Gemini deep analysis. Real-time MediaPipe webcam recognition runs 100% locally without it. |
+| `GEMINI_MODEL` | No | `gemini-3.8-flash` | Configurable multimodal vision model for optional deep analysis. |
+| `CONFIDENCE_THRESHOLD` | No | `0.70` | Minimum classification confidence ($0.0$ to $1.0$) required to accept a gesture (MediaPipe default 0.70). |
 | `DB_URL` | No | `jdbc:mysql://localhost:3306/gesturetalk_db?...` | JDBC connection URL for MySQL. |
 | `DB_USER` | No | `root` | MySQL username. |
 | `DB_PASSWORD` | No | `root` | MySQL user password. |

@@ -4,15 +4,15 @@
 | :--- | :--- |
 | **Document ID** | DOC-17 |
 | **Project Name** | GestureTalk AI |
-| **Document Version** | 1.0.0 |
+| **Document Version** | 1.1.0 |
 | **Classification** | Strategic Analysis, Critical Evaluation & Product Roadmap |
 | **Parent Document** | [00-PROJECT-OVERVIEW.md](00-PROJECT-OVERVIEW.md) |
 
 ---
 
-## 1. Objective Assessment of Current Release (v1.0)
+## 1. Objective Assessment of System Architecture (v1.1)
 
-While GestureTalk AI delivers an efficient, secure, and privacy-preserving bridge for assistive communication, an honest academic and architectural evaluation requires documenting its technical boundaries and operating constraints.
+With the integration of **Google MediaPipe Gesture Recognizer WebAssembly**, GestureTalk AI has achieved real-time continuous video tracking (30+ FPS), offline edge inference, and consecutive-frame prediction smoothing, resolving earlier dependencies on cloud vision round-trips for continuous webcam usage.
 
 ---
 
@@ -22,17 +22,14 @@ While GestureTalk AI delivers an efficient, secure, and privacy-preserving bridg
 ┌─────────────────────────────────┬────────────────────────────────────────────────────────────────────────────┐
 │ System Dimension                │ Nature of Architectural Limitation                                         │
 ├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-│ Vocabulary Breadth              │ Restricted strictly to 5 predefined static gestures: THUMBS_UP,            │
-│                                 │ THUMBS_DOWN, OPEN_PALM, V_SIGN, and INDEX_POINTING.                       │
+│ Vocabulary Breadth              │ Restricted to the controlled 5-gesture catalog: THUMBS_UP, THUMBS_DOWN,    │
+│                                 │ OPEN_PALM, V_SIGN, and INDEX_POINTING.                                     │
 ├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
 │ Optical & Environmental Quality │ Classification accuracy degrades under severe underexposure (<10 lux),     │
 │                                 │ heavy motion blur, or when hands are positioned beyond 2 meters from lens. │
 ├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-│ Probabilistic AI Error Rate     │ As with all Large Multimodal Models, Gemini Vision can occasionally        │
-│                                 │ misclassify ambiguous angles or hallucinate hand configurations.           │
-├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-│ Mandatory Internet Connectivity │ Because Gemini inference executes via Google's cloud endpoints, local      │
-│                                 │ offline operation is impossible in the v1 architecture.                    │
+│ Hardware Acceleration (WASM)    │ Optimal 30+ FPS inference requires WebAssembly and WebGL/GPU delegate.     │
+│                                 │ Older low-power devices fall back to CPU WASM which may run at 15-20 FPS.  │
 ├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
 │ Browser Speech Synthesis Variance│ Auditory quality, accent naturalness, and voice options depend entirely    │
 │                                 │ on the host OS and browser engine (e.g., Windows SAPI vs. Apple AVVoice).  │
@@ -40,11 +37,8 @@ While GestureTalk AI delivers an efficient, secure, and privacy-preserving bridg
 │ Non-Sign-Language Boundary      │ Does not translate natural sign languages (ASL/BSL/ISL), which require     │
 │                                 │ dynamic temporal syntax, facial expressions, and spatial movement.         │
 ├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-│ Discrete Snapshot Processing    │ Operates on discrete snapshots triggered by the user; does not perform     │
-│                                 │ real-time continuous 30 FPS video stream inference over WebSockets.        │
-├─────────────────────────────────┼────────────────────────────────────────────────────────────────────────────┤
-│ Platform Form Factor            │ Packaged as a responsive web application; lacks native mobile wrappers     │
-│                                 │ (iOS/Android native APKs) or native background system services.            │
+│ Single-Hand Dominance           │ MediaPipe recognizer is configured for single-hand focus (`numHands: 1`)   │
+│                                 │ to avoid conflicting gesture arbitration when two hands enter frame.       │
 └─────────────────────────────────┴────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -54,10 +48,31 @@ While GestureTalk AI delivers an efficient, secure, and privacy-preserving bridg
 
 ```
                      ┌────────────────────────────────────────────────────────┐
-                     │ HORIZON 1: Near-Term Enhancements (v1.1 - v1.2)        │
-                     │ • Temporal smoothing & continuous video tracking       │
-                     │ • Vocabulary expansion to 15 essential gestures        │
+                     │ HORIZON 1: Achieved Enhancements (v1.1)                │
+                     │ • Google MediaPipe WebAssembly real-time engine        │
+                     │ • 21-point hand skeleton landmark visual overlay       │
+                     │ • Five-stage consecutive-frame prediction smoothing    │
+                     │ • Duplicate speech prevention & debounce cooldown      │
+                     │ • Local offline hosting of WASM & model assets         │
+                     │ • Secondary Gemini integration for deep diagnostics    │
+                     └───────────────────────────┬────────────────────────────┘
+                                                 │
+                                                 ▼
+                     ┌────────────────────────────────────────────────────────┐
+                     │ HORIZON 2: Vocabulary & Language Expansion (v1.2)      │
+                     │ • Vocabulary expansion to custom domain gesture models │
                      │ • Multilingual text-to-speech output (10+ languages)   │
+                     │ • Two-handed sign support and compound phrases         │
+                     └───────────────────────────┬────────────────────────────┘
+                                                 │
+                                                 ▼
+                     ┌────────────────────────────────────────────────────────┐
+                     │ HORIZON 3: Native Platform Packaging (v2.0)            │
+                     │ • Progressive Web App (PWA) with Service Worker        │
+                     │ • Native Android / iOS packaging                       │
+                     │ • Wearable companion support (smartwatch buzz on ack)  │
+                     └────────────────────────────────────────────────────────┘
+```
                      └───────────────────────────┬────────────────────────────┘
                                                  │
                                                  ▼

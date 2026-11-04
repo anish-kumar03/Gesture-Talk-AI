@@ -4,9 +4,9 @@
 | :--- | :--- |
 | **Document ID** | TEST-01 |
 | **Project Name** | GestureTalk AI |
-| **Version** | 1.0.0 (Production Release) |
+| **Version** | 1.1.0 (MediaPipe Real-Time Release) |
 | **Classification** | Verification, Quality Assurance & Test Report |
-| **Total Test Count** | **87 Automated Tests** (100% Passing, 0 Failures, 0 Errors) |
+| **Total Test Count** | **97 Automated Tests** (100% Passing, 0 Failures, 0 Errors) |
 | **Empirical Benchmark Accuracy** | **100.0%** across 30 diverse test samples |
 
 ---
@@ -50,8 +50,9 @@ The test suite consists of **11 test classes** containing **87 automated tests**
 | [`GestureHistoryDAOTest.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/test/java/com/gesturetalk/dao/GestureHistoryDAOTest.java) | H2 persistence, PreparedStatement execution, limit 20, filtering, purge | 8 | Pass |
 | [`GestureRecognitionServletTest.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/test/java/com/gesturetalk/controller/GestureRecognitionServletTest.java) | Multipart upload processing, error status codes, JSON response format | 6 | Pass |
 | [`GestureHistoryServletTest.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/test/java/com/gesturetalk/controller/GestureHistoryServletTest.java) | GET /api/history retrieval, filter parameters, DELETE purge | 6 | Pass |
+| [`GestureResultServletTest.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/test/java/com/gesturetalk/controller/GestureResultServletTest.java) | POST /api/gesture-result MediaPipe payload validation, threshold, enum mapping, DB resilience | 10 | Pass |
 | [`GestureAccuracyEvaluationTest.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/test/java/com/gesturetalk/service/GestureAccuracyEvaluationTest.java) | 30-sample empirical benchmark across lighting, blur, and edge cases | 1 | Pass |
-| **Total** | **Comprehensive Full System Coverage** | **87** | **100% Pass** |
+| **Total** | **Comprehensive Full System Coverage** | **97** | **100% Pass** |
 
 ---
 

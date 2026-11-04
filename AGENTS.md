@@ -4,23 +4,27 @@
 | :--- | :--- |
 | **Document ID** | AGENT-CONFIG-01 |
 | **Project Name** | GestureTalk AI |
-| **Version** | 1.0.0 (Production Release) |
+| **Version** | 1.1.0 (MediaPipe Real-Time Architecture Release) |
 | **Target Runtime** | Java 21 LTS / Jakarta EE 10 / Apache Tomcat 10.1+ / MySQL 8.0+ |
-| **SDK Standard** | Official Google GenAI Java SDK (`com.google.genai:google-genai:1.80.0`) |
-| **Preferred Model** | `gemini-3.8-flash` (configurable via `GEMINI_MODEL`) |
+| **Primary Engine** | Google MediaPipe Gesture Recognizer for Web (`@mediapipe/tasks-vision:0.10.14`) |
+| **Secondary Service**| Optional Google GenAI Java SDK (`com.google.genai:google-genai:1.80.0`) |
+| **Preferred Model** | `gemini-3.8-flash` (configurable via `GEMINI_MODEL`, optional fallback) |
 
 ---
 
 ## 1. Project Overview & Architectural Principles
 
-**GestureTalk AI** is an AI-powered assistive communication web application that translates static hand gestures captured via webcam or file upload into natural speech using Java 21 LTS, Jakarta EE 10 Servlets on Apache Tomcat 10.1, the official Google GenAI Java SDK (`1.80.0`), and the browser SpeechSynthesis API.
+**GestureTalk AI** is an AI-powered assistive communication web application that translates static hand gestures into natural speech using Java 21 LTS, Jakarta EE 10 Servlets on Apache Tomcat 10.1, **Google MediaPipe Gesture Recognizer WebAssembly (Primary Real-Time Engine)**, the browser SpeechSynthesis API, and optional **Google Gemini Vision** for secondary multimodal diagnostic analysis.
 
 ### Core Architectural Rules for All Agents:
-1. **Pure Java Backend**: All business logic, image validation, model dispatching, deterministic mapping, and database persistence are implemented in standard Java. Neither Spring Boot nor Python/Node.js microservices are permitted.
-2. **Deterministic Natural Language Mapping**: Google Gemini acts solely as a visual classifier returning structured JSON tokens. User-facing spoken sentences are resolved deterministically by [`GestureMessageMapper.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/main/java/com/gesturetalk/service/GestureMessageMapper.java). The LLM is never permitted to invent user-facing phrases.
-3. **In-Memory Ephemeral Data Flow**: Uploaded image bytes and webcam frames exist strictly in volatile JVM memory (`byte[]` buffers). Zero image bytes are ever written to disk or stored in the database.
-4. **Secret Isolation**: The server accesses the AI API key exclusively from environment variables. No secrets are ever exposed in client-side code (JSP, HTML, JavaScript) or committed to version control.
-5. **No Code Modification Without Authorization**: Respect existing working functionality and do not modify application classes unless an actual defect correction is requested.
+1. **Hybrid Architecture (Client-Side Real-Time + Java Backend)**:
+   - **Primary Engine**: Real-time webcam tracking runs in the client browser using Google MediaPipe Gesture Recognizer (`@mediapipe/tasks-vision`) compiled to WebAssembly. Zero video frames are transmitted over external networks for webcam recognition, eliminating latency and cloud API quota bottlenecks.
+   - **Java Backend Authority**: All gesture validation, deterministic natural language mapping, and database persistence are strictly enforced by Java Servlets (`GestureResultServlet`, `GestureRecognitionServlet`).
+2. **Deterministic Natural Language Mapping**: Classifiers (MediaPipe or Gemini) act solely as visual classifiers returning structured gesture tokens. User-facing spoken sentences are resolved deterministically by [`GestureMessageMapper.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/main/java/com/gesturetalk/service/GestureMessageMapper.java). The AI is never permitted to invent user-facing phrases.
+3. **Resilience & Gemini Optionality**: The application operates fully even if Gemini Vision returns HTTP 503, has rate limits, or is unconfigured. MediaPipe runs locally without external API dependencies.
+4. **In-Memory Ephemeral Data Flow**: Uploaded image bytes and webcam frames exist strictly in volatile memory (`byte[]` buffers). Zero image bytes are ever written to disk or stored in the database.
+5. **Secret Isolation**: Optional cloud API keys (`GOOGLE_API_KEY`) are accessed strictly on the server side from environment variables. No secrets are ever exposed in client-side code (JSP, HTML, JavaScript) or committed to version control.
+6. **No Code Modification Without Authorization**: Respect existing working functionality and do not modify application classes unless an actual defect correction is requested.
 
 ---
 
@@ -54,9 +58,9 @@
 
 | Variable Name | Status | Default | Description |
 | :--- | :---: | :--- | :--- |
-| **`GOOGLE_API_KEY`** | **Mandatory** | *None* | Primary standard API key obtained from [Google AI Studio](https://aistudio.google.com/). |
-| **`GEMINI_MODEL`** | Configurable | `gemini-3.8-flash` | Multimodal model ID (e.g. `gemini-3.8-flash`, `gemini-2.5-flash`). |
-| **`CONFIDENCE_THRESHOLD`**| Configurable | `0.75` | Minimum classification confidence ($0.0$ to $1.0$) required to accept a gesture. |
+| **`GOOGLE_API_KEY`** | **Optional** (Primary MediaPipe works offline) | *None* | Google GenAI API key for secondary Gemini deep analysis. Real-time MediaPipe webcam recognition works 100% without it. |
+| **`GEMINI_MODEL`** | Configurable | `gemini-3.8-flash` | Multimodal model ID for optional secondary deep analysis. |
+| **`CONFIDENCE_THRESHOLD`**| Configurable | `0.70` | Minimum classification confidence ($0.0$ to $1.0$) required to accept a gesture (MediaPipe default 0.70, Gemini default 0.75). |
 | **`DB_URL`** | Optional | `jdbc:mysql://localhost:3306/gesturetalk_db?...` | JDBC connection URL for MySQL. |
 | **`DB_USER`** | Optional | `root` | MySQL username. |
 | **`DB_PASSWORD`** | Optional | `root` | MySQL user password. |

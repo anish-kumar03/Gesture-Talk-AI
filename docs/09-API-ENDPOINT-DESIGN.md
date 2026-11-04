@@ -26,15 +26,15 @@
 ┌────────┬──────────────────────┬────────────────────────────┬─────────────────────────────────────────────────┐
 │ Method │ Endpoint URL         │ Target Servlet Class       │ Functional Responsibility                       │
 ├────────┼──────────────────────┼────────────────────────────┼─────────────────────────────────────────────────┤
-│ GET    │ /home                │ HomeServlet                │ Dispatches to index.jsp view template           │
+│ GET    │ /home                │ (Welcome file index.jsp)   │ Dispatches to index.jsp view template           │
 ├────────┼──────────────────────┼────────────────────────────┼─────────────────────────────────────────────────┤
-│ GET    │ /api/health          │ HealthServlet              │ Emits operational readiness & DB/AI status      │
+│ POST   │ /api/gesture-result  │ GestureResultServlet       │ Ingests MediaPipe JSON payload, maps & logs     │
 ├────────┼──────────────────────┼────────────────────────────┼─────────────────────────────────────────────────┤
 │ POST   │ /api/recognize       │ GestureRecognitionServlet  │ Receives image multipart, performs AI analysis  │
 ├────────┼──────────────────────┼────────────────────────────┼─────────────────────────────────────────────────┤
-│ GET    │ /api/history         │ HistoryServlet             │ Retrieves chronological audit logs (with filter)│
+│ GET    │ /api/history         │ GestureHistoryServlet      │ Retrieves chronological audit logs (with filter)│
 ├────────┼──────────────────────┼────────────────────────────┼─────────────────────────────────────────────────┤
-│ DELETE │ /api/history         │ HistoryServlet             │ Purges all recorded session recognition logs    │
+│ DELETE │ /api/history         │ GestureHistoryServlet      │ Purges all recorded session recognition logs    │
 └────────┴──────────────────────┴────────────────────────────┴─────────────────────────────────────────────────┘
 ```
 
@@ -74,6 +74,43 @@
   }
 }
 ```
+
+---
+
+### 3.3 `POST /api/gesture-result` (MediaPipe Real-Time Endpoint)
+* **Purpose**: Ingests client-side detected gesture results from MediaPipe WebAssembly, validates `gestureCode` against `GestureType` enum, validates confidence ($0.0 \le c \le 1.0$), maps speech text via `GestureMessageMapper`, persists audit trail to MySQL (`gesture_history`), and returns structured JSON analysis.
+* **HTTP Method**: `POST`
+* **URL**: `/api/gesture-result`
+* **Request Headers**: `Content-Type: application/json`, `Accept: application/json`
+* **Request Payload**:
+```json
+{
+  "gestureCode": "THUMBS_UP",
+  "confidence": 0.94,
+  "sourceType": "WEBCAM"
+}
+```
+* **Success Response (`200 OK`)**:
+```json
+{
+  "gestureCode": "THUMBS_UP",
+  "displayName": "Thumbs Up",
+  "mappedMessage": "Yes, that's correct.",
+  "confidence": 0.94,
+  "explanation": "Real-time client-side gesture recognition via Google MediaPipe.",
+  "sourceType": "WEBCAM",
+  "timestamp": "2026-11-04T08:15:00.000Z",
+  "meetsThreshold": true,
+  "shouldAutoSpeak": true
+}
+```
+* **Error Responses (`400 Bad Request`)**:
+  - `EMPTY_REQUEST_BODY`: Body is empty or whitespace.
+  - `MALFORMED_JSON`: Request body is not valid JSON.
+  - `MISSING_GESTURE_CODE`: Missing or empty `gestureCode`.
+  - `UNMAPPED_GESTURE`: `gestureCode` does not match any valid `GestureType` enum value.
+  - `MISSING_CONFIDENCE`: Missing `confidence`.
+  - `INVALID_CONFIDENCE`: Confidence is not a float between $0.0$ and $1.0$.
 * **Degraded Response (`503 Service Unavailable`)**:
 ```json
 {

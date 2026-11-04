@@ -4,22 +4,25 @@
 | :--- | :--- |
 | **Document ID** | ARCH-01 |
 | **Project Name** | GestureTalk AI |
-| **Version** | 1.0.0 (Production Release) |
+| **Version** | 1.1.0 (MediaPipe Real-Time Architecture Release) |
 | **Classification** | System & Software Architecture Document |
-| **Target Runtime** | Java 21 LTS / Jakarta EE 10 / Apache Tomcat 10.1+ |
+| **Target Runtime** | Java 21 LTS / Jakarta EE 10 / Apache Tomcat 10.1+ / WebAssembly |
 
 ---
 
 ## 1. System Overview & Architectural Philosophy
 
-**GestureTalk AI** is an AI-powered hand gesture recognition and assistive text-to-speech web application built on **pure Java 21 LTS**, **Jakarta EE 10**, and **Apache Tomcat 10.1**.
+**GestureTalk AI** is an AI-powered hand gesture recognition and assistive text-to-speech web application built on **pure Java 21 LTS**, **Jakarta EE 10**, **Apache Tomcat 10.1**, and **Google MediaPipe Gesture Recognizer for Web (WebAssembly)**.
 
 ### Core Architectural Principles:
-1. **Strict Pure Java Backend**: All business logic, image validation, model dispatching, deterministic mapping, and database persistence are implemented in standard Java. Neither Spring Boot nor Python/Node.js microservices are utilized.
-2. **Deterministic Natural Language Mapping**: The generative AI model performs visual classification only; user-facing sentences are deterministically resolved by immutable Java logic.
-3. **In-Memory Volatile Processing**: Uploaded frames and camera snapshots exist exclusively in volatile memory (`byte[]` buffers). Zero image bytes are ever written to disk or stored in the database.
-4. **Strict Separation of Concerns (MVC)**: Clean boundary enforcement between View (JSP, HTML5, CSS3, vanilla JS), Controller (Jakarta Servlets), Service (Domain Logic & AI Orchestration), Model (DTOs and Entities), and DAO (JDBC PreparedStatement Layer).
-5. **Privacy & Credential Isolation**: The Google GenAI API key (`GOOGLE_API_KEY`) and database credentials are read exclusively from environment variables on the server. No secrets are ever exposed to client-side scripts.
+1. **Hybrid Architecture (Client-Side Real-Time + Java Backend)**:
+   - **Primary Engine**: Real-time webcam tracking runs in the client browser using Google MediaPipe Gesture Recognizer (`@mediapipe/tasks-vision`) compiled to WebAssembly. Zero video frames are transmitted over external networks for webcam recognition, eliminating latency and cloud API quota bottlenecks.
+   - **Java Backend Authority**: All gesture validation, deterministic natural language mapping, and database persistence are strictly enforced by Java Servlets (`GestureResultServlet`, `GestureRecognitionServlet`).
+2. **Deterministic Natural Language Mapping**: The generative AI model and visual classifier perform visual classification only; user-facing sentences are deterministically resolved by immutable Java logic in `GestureMessageMapper.java`.
+3. **Resilience & Zero 503 Downtime**: The application operates fully even if Gemini Vision returns HTTP 503, has rate limits, or is unconfigured. MediaPipe runs locally without external API dependencies.
+4. **In-Memory Volatile Processing**: Uploaded frames and camera snapshots exist exclusively in volatile memory (`byte[]` buffers). Zero image bytes are ever written to disk or stored in the database.
+5. **Strict Separation of Concerns (MVC)**: Clean boundary enforcement between View (JSP, HTML5, CSS3, vanilla JS), Controller (Jakarta Servlets), Service (Domain Logic & AI Orchestration), Model (DTOs and Entities), and DAO (JDBC PreparedStatement Layer).
+6. **Privacy & Credential Isolation**: The optional Google GenAI API key (`GOOGLE_API_KEY`) and database credentials are read exclusively from environment variables on the server. No secrets are ever exposed to client-side scripts.
 
 ---
 
@@ -30,13 +33,15 @@ flowchart TD
     subgraph Client["Client Tier (Browser)"]
         UI["Bootstrap 5.3 UI (index.jsp)"]
         CAM["Webcam Module (webcam.js)"]
+        MP["MediaPipe Gesture Recognizer (mediapipe-recognizer.js)<br/>• WASM Runtime + 21 Hand Landmarks<br/>• Consecutive-Frame Smoothing<br/>• Duplicate Vocalization Suppression"]
         UPL["Upload Module (upload.js)"]
         TTS["SpeechSynthesis Module (tts.js)"]
         HIST["Audit Table Module (history.js)"]
-        APP["App Controller (app.js)"]
+        APP["App Coordinator (app.js)"]
     end
 
     subgraph Container["Server Tier (Apache Tomcat 10.1 / Jakarta EE 10)"]
+        RES_SERV["GestureResultServlet<br/>(POST /api/gesture-result)"]
         REC_SERV["GestureRecognitionServlet<br/>(POST /api/recognize)"]
         HIST_SERV["GestureHistoryServlet<br/>(GET, DELETE /api/history)"]
         
@@ -54,9 +59,27 @@ flowchart TD
     end
 
     subgraph External["External Services & Storage"]
-        GEMINI_API["Google Gemini 3.8 Flash API<br/>(Multimodal Vision)"]
+        GEMINI_API["Google Gemini 3.8 Flash API<br/>(Optional Secondary Deep Vision)"]
         MYSQL[("MySQL 8.0+ Database<br/>(gesturetalk_db)")]
     end
+
+    CAM -->|Video Stream| MP
+    MP -->|Visual Landmarks Overlay| UI
+    MP -->|Confirmed Gesture JSON| RES_SERV
+    CAM -.->|Optional Manual Snapshot| REC_SERV
+    UPL -->|Multipart Image| REC_SERV
+    RES_SERV --> MAP
+    RES_SERV --> DAO
+    REC_SERV --> VAL --> REC_SVC --> GEMINI --> GEMINI_API
+    REC_SVC --> MAP
+    REC_SERV --> DAO
+    DAO --> POOL --> MYSQL
+    RES_SERV -->|JSON Response| APP
+    REC_SERV -->|JSON Response| APP
+    APP -->|Vocalize Mapped Sentence| TTS
+    HIST_SERV --> DAO
+    HIST --> HIST_SERV
+```
 
     CAM -->|Rasterize Blob| APP
     UPL -->|Select File| APP
