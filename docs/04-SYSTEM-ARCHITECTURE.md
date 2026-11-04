@@ -99,7 +99,7 @@ The architecture strictly adheres to the following core software engineering ten
 ### Layer 4: AI Integration Layer (GenAI SDK)
 * **Role**: Encapsulates all communication with the Google Gemini Multimodal API.
 * **Components**:
-  * `GeminiVisionService`: Configures the `Client` using `System.getenv("GEMINI_API_KEY")`. Formulates the multimodal prompt using `Content.fromParts(Part.fromText(...), Part.fromBytes(...))`.
+  * `GeminiVisionService`: Configures the `Client` using `System.getenv("GOOGLE_API_KEY")`. Formulates the multimodal prompt using `Content.fromParts(Part.fromText(...), Part.fromBytes(...))`.
   * `GeminiResponseParser`: Parses the raw JSON response emitted by Gemini, extracts the gesture string, normalizes it, and maps it to a valid `GestureType` or defaults to `UNKNOWN`.
 
 ### Layer 5: Data Access Layer (DAO & Pool)
@@ -165,7 +165,7 @@ The architecture strictly adheres to the following core software engineering ten
 ┌─────────────────────────┬──────────────────────────────────────────────────────────────────┐
 │ Architectural Attribute │ Implementation Technique                                         │
 ├─────────────────────────┼──────────────────────────────────────────────────────────────────┤
-│ Zero Secret Leakage     │ GEMINI_API_KEY read only in GeminiVisionService via env variable.│
+│ Zero Secret Leakage     │ GOOGLE_API_KEY read only in GeminiVisionService via env variable.│
 │ Privacy by Design       │ Images processed in volatile RAM; never written to filesystem.   │
 │ Deterministic Safety    │ Spoken messages defined in Java code, eliminating AI drift.      │
 │ Low Memory Overhead     │ Absence of Spring/Hibernate limits base heap usage to < 64MB.    │

@@ -411,13 +411,13 @@ document.addEventListener('DOMContentLoaded', () => {
         resultMessageText.textContent = errorMessage;
         resultConfidenceBar.style.width = '0%';
         resultConfidenceVal.textContent = '0%';
-        resultExplanationText.textContent = 'Please ensure the server environment variable GEMINI_API_KEY is configured and active.';
+        resultExplanationText.textContent = 'Please ensure the server environment variable GOOGLE_API_KEY is configured and active.';
 
-        if (errorMessage.includes('GEMINI_API_KEY') || errorMessage.includes('AI_CONFIG_ERROR')) {
+        if (errorMessage.includes('GOOGLE_API_KEY') || errorMessage.includes('AI_CONFIG_ERROR')) {
             devModeBanner.classList.remove('d-none');
             devModeBanner.innerHTML = `
                 <i class="bi bi-key-fill text-warning me-1"></i>
-                <strong>API Key Required:</strong> Set the <code>GEMINI_API_KEY</code> environment variable on your server and restart Tomcat.
+                <strong>API Key Required:</strong> Set the <code>GOOGLE_API_KEY</code> environment variable on your server and restart Tomcat.
             `;
         } else if (errorMessage.includes('AI_RATE_LIMIT') || errorMessage.includes('rate limit')) {
             devModeBanner.classList.remove('d-none');

@@ -22,7 +22,7 @@ In accordance with strict enterprise and academic standards, GestureTalk AI enfo
 [Browser / Client Side]                  [Jakarta EE / Server Side]            [Google Cloud / GenAI]
        │                                             │                                   │
        │  Submits image multipart                    │                                   │
-       │────────────────────────────────────────────>│ Reads System.getenv("GEMINI_API_KEY")
+       │────────────────────────────────────────────>│ Reads System.getenv("GOOGLE_API_KEY")
        │                                             │                                   │
        │                                             │ Invokes SDK with hidden API Key   │
        │                                             │──────────────────────────────────>│
@@ -32,8 +32,8 @@ In accordance with strict enterprise and academic standards, GestureTalk AI enfo
 ```
 
 ### Key Protection Rules:
-* **Zero Client Exposure**: The `GEMINI_API_KEY` is **never** injected into JSP templates, JavaScript files, HTML attributes, browser cookies, or client-side storage (`localStorage` or `sessionStorage`).
-* **Environment Variable Injection**: The key is supplied exclusively through the host operating system's environment variables (`GEMINI_API_KEY` or `GOOGLE_API_KEY`) or container runtime environment.
+* **Zero Client Exposure**: The `GOOGLE_API_KEY` is **never** injected into JSP templates, JavaScript files, HTML attributes, browser cookies, or client-side storage (`localStorage` or `sessionStorage`).
+* **Environment Variable Injection**: The key is supplied exclusively through the host operating system's standard environment variable (`GOOGLE_API_KEY`) or container runtime environment. Windows User Environment Variables are the recommended development configuration.
 * **No Version Control Leaks**: `.gitignore` rules prevent properties files containing credentials or secrets from being committed into the source repository.
 
 ---

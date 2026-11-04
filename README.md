@@ -120,7 +120,7 @@ Comprehensive architecture, integration, database, testing, and operations docum
 * **Apache Maven 3.9+**
 * **MySQL 8.0+**
 * **Apache Tomcat 10.1+**
-* **Google Gemini API Key** (`GEMINI_API_KEY`)
+* **Google AI Studio API Key** (`GOOGLE_API_KEY`)
 
 ### Quick Setup
 1. Clone the repository:
@@ -128,11 +128,16 @@ Comprehensive architecture, integration, database, testing, and operations docum
    git clone https://github.com/anish-kumar03/Gesture-Talk-AI.git
    cd Gesture-Talk-AI
    ```
-2. Set the Gemini API key:
+2. Configure your API key using Windows User Environment Variables (Recommended — never stored in files):
    ```powershell
-   [System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'your_api_key_here', 'User')
+   [System.Environment]::SetEnvironmentVariable('GOOGLE_API_KEY', 'your_api_key_from_google_ai_studio', 'User')
    ```
-3. Initialize the database schema:
+3. (Optional) Configure the preferred vision model (defaults to `gemini-3.8-flash`):
+   ```powershell
+   [System.Environment]::SetEnvironmentVariable('GEMINI_MODEL', 'gemini-3.8-flash', 'User')
+   ```
+   *(To verify which models are active for your API key, query `https://generativelanguage.googleapis.com/v1beta/models?key=$env:GOOGLE_API_KEY`)*
+4. Initialize the database schema:
    ```bash
    mysql -u root -p < src/main/resources/db/schema.sql
    ```

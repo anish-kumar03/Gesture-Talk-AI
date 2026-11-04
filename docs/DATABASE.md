@@ -119,3 +119,4 @@ Automated tests do **not** require an active MySQL server. Tests in [`GestureHis
 jdbc:h2:mem:gesturetalk_history_test;MODE=MySQL;DB_CLOSE_DELAY=-1
 ```
 This enables full JDBC verification and schema execution inside Maven (`mvn clean test`) with zero external service dependencies.
+

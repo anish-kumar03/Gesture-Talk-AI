@@ -36,8 +36,8 @@ GestureTalk AI keeps all secrets, credentials, and tuning parameters outside the
 
 | Variable Name | Required | Default Value | Description |
 | :--- | :---: | :--- | :--- |
-| `GEMINI_API_KEY` | **Yes** | *None* | Google Gemini API key obtained from [Google AI Studio](https://aistudio.google.com/). |
-| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Multimodal model name (e.g. `gemini-2.5-flash`, `gemini-1.5-flash`). |
+| `GOOGLE_API_KEY` | **Yes** | *None* | Single primary standard API key obtained from [Google AI Studio](https://aistudio.google.com/) for the Google GenAI Java SDK. |
+| `GEMINI_MODEL` | No | `gemini-3.8-flash` | Configurable multimodal vision model (preferred default: `gemini-3.8-flash`, with `gemini-2.5-flash` fallback). |
 | `CONFIDENCE_THRESHOLD` | No | `0.75` | Minimum classification confidence ($0.0$ to $1.0$) required to accept a gesture. |
 | `DB_URL` | No | `jdbc:mysql://localhost:3306/gesturetalk_db?...` | JDBC connection URL for MySQL. |
 | `DB_USER` | No | `root` | MySQL username. |
@@ -48,17 +48,20 @@ GestureTalk AI keeps all secrets, credentials, and tuning parameters outside the
 
 ### Setting Variables by Operating System
 
-#### Windows (PowerShell)
+#### Windows (PowerShell - Recommended: User Level Registry)
 ```powershell
-$env:GEMINI_API_KEY="AIzaSyYourSecretKeyHere"
-$env:DB_USER="root"
-$env:DB_PASSWORD="your_password"
-$env:DB_URL="jdbc:mysql://localhost:3306/gesturetalk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+# Recommended: Set permanent user environment variables across all terminal sessions and reboots
+[System.Environment]::SetEnvironmentVariable('GOOGLE_API_KEY', 'YOUR_ACTUAL_API_KEY_HERE', 'User')
+[System.Environment]::SetEnvironmentVariable('GEMINI_MODEL', 'gemini-3.8-flash', 'User')
+
+# Optional: Verify available models for your API key
+Invoke-RestMethod -Uri "https://generativelanguage.googleapis.com/v1beta/models?key=$env:GOOGLE_API_KEY" | Select-Object -ExpandProperty models | Select-Object name
 ```
 
 #### Windows (Command Prompt - CMD)
 ```cmd
-set GEMINI_API_KEY=AIzaSyYourSecretKeyHere
+set GOOGLE_API_KEY=YOUR_ACTUAL_API_KEY_HERE
+set GEMINI_MODEL=gemini-3.8-flash
 set DB_USER=root
 set DB_PASSWORD=your_password
 set DB_URL=jdbc:mysql://localhost:3306/gesturetalk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
@@ -66,7 +69,8 @@ set DB_URL=jdbc:mysql://localhost:3306/gesturetalk_db?useSSL=false&allowPublicKe
 
 #### Linux / macOS (Bash or Zsh)
 ```bash
-export GEMINI_API_KEY="AIzaSyYourSecretKeyHere"
+export GOOGLE_API_KEY="YOUR_ACTUAL_API_KEY_HERE"
+export GEMINI_MODEL="gemini-3.8-flash"
 export DB_USER="root"
 export DB_PASSWORD="your_password"
 export DB_URL="jdbc:mysql://localhost:3306/gesturetalk_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
@@ -132,17 +136,20 @@ target/gesturetalk-ai.war
 
 1. Locate your Apache Tomcat 10.1 installation directory (referred to as `$CATALINA_HOME`).
 2. Configure Tomcat environment variables:
-   * **Windows**: Create or edit `$CATALINA_HOME/bin/setenv.bat`:
+   * **Windows**: In your external Tomcat directory (outside the project repository), create or edit `%CATALINA_HOME%\bin\setenv.bat`:
      ```cmd
-     set "GEMINI_API_KEY=AIzaSyYourSecretKeyHere"
+     rem Set external environment variables (DO NOT create or commit this file in the project repo)
+     set "GOOGLE_API_KEY=YOUR_ACTUAL_API_KEY_HERE"
+     set "GEMINI_MODEL=gemini-3.8-flash"
      set "DB_USER=root"
-     set "DB_PASSWORD=your_password"
+     set "DB_PASSWORD=YOUR_DB_PASSWORD_HERE"
      ```
-   * **Linux/macOS**: Create or edit `$CATALINA_HOME/bin/setenv.sh`:
+   * **Linux/macOS**: In your external Tomcat directory, create or edit `$CATALINA_HOME/bin/setenv.sh`:
      ```bash
-     export GEMINI_API_KEY="AIzaSyYourSecretKeyHere"
+     export GOOGLE_API_KEY="YOUR_ACTUAL_API_KEY_HERE"
+     export GEMINI_MODEL="gemini-3.8-flash"
      export DB_USER="root"
-     export DB_PASSWORD="your_password"
+     export DB_PASSWORD="YOUR_DB_PASSWORD_HERE"
      ```
      Ensure execution permissions: `chmod +x $CATALINA_HOME/bin/setenv.sh`
 3. Copy the compiled WAR file to Tomcat's `webapps` folder:
@@ -184,11 +191,12 @@ target/gesturetalk-ai.war
 ### Problem: Browser displays "Camera Access Blocked"
 * **Solution**: Click the camera icon in your browser's URL address bar, select **"Always allow"**, and refresh the page. Alternatively, click the **"Camera Guide"** button in the application navbar for step-by-step instructions.
 
-### Problem: HTTP 500 with message `GEMINI_API_KEY is not configured`
-* **Solution**: Ensure `GEMINI_API_KEY` is exported in the shell running Tomcat or configured in `$CATALINA_HOME/bin/setenv.bat` (or `setenv.sh`). Restart Tomcat after changing environment variables.
+### Problem: HTTP 500 with message `GOOGLE_API_KEY is not configured`
+* **Solution**: Ensure `GOOGLE_API_KEY` is exported in the shell running Tomcat or configured in `$CATALINA_HOME/bin/setenv.bat` (or `setenv.sh`). Restart Tomcat after changing environment variables.
 
 ### Problem: HTTP 503 with message `AI_RATE_LIMIT`
 * **Solution**: You have exceeded the free tier quota for the Gemini API. Wait 15–30 seconds and retry, or configure a paid quota in Google Cloud Console.
 
 ### Problem: Database connection errors (`Communications link failure`)
 * **Solution**: Verify that MySQL is running on port 3306 and that the credentials in `DB_USER` and `DB_PASSWORD` have permission to access `gesturetalk_db`.
+

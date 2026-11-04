@@ -6,8 +6,8 @@
 | **Project Name** | GestureTalk AI |
 | **Version** | 1.0.0 (Production Release) |
 | **Classification** | AI Integration, Vision Pipeline & Prompt Specification |
-| **Target SDK** | Official Google GenAI Java SDK (`com.google.genai:google-genai:0.1.1`) |
-| **Default Model** | `gemini-2.5-flash` |
+| **Target SDK** | Official Google GenAI Java SDK (`com.google.genai:google-genai:1.80.0`) |
+| **Default Model** | `gemini-3.8-flash` |
 
 ---
 
@@ -22,13 +22,13 @@
    User camera frames and file uploads remain exclusively in JVM volatile memory (`byte[]`). Images are transmitted to Gemini as Base64-encoded `Blob` payloads over TLS and discarded immediately after request processing. No image frames are written to local disk, temporary storage, or the database.
 
 3. **Zero Frontend Secret Exposure**:
-   Client-side JavaScript never communicates directly with the Gemini API. All interactions pass through the authenticated server-side controller ([`GestureRecognitionServlet.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/main/java/com/gesturetalk/controller/GestureRecognitionServlet.java)), keeping the `GEMINI_API_KEY` hidden within backend environment variables.
+   Client-side JavaScript never communicates directly with the Gemini API. All interactions pass through the authenticated server-side controller ([`GestureRecognitionServlet.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/main/java/com/gesturetalk/controller/GestureRecognitionServlet.java)), keeping the `GOOGLE_API_KEY` hidden within backend environment variables.
 
 ---
 
 ## 2. Google GenAI Java SDK Architecture
 
-The integration utilizes the official Google GenAI Java SDK (`com.google.genai:google-genai:0.1.1`), instantiated within [`GeminiVisionService.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/main/java/com/gesturetalk/service/GeminiVisionService.java).
+The integration utilizes the official Google GenAI Java SDK (`com.google.genai:google-genai:1.80.0`), instantiated within [`GeminiVisionService.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/main/java/com/gesturetalk/service/GeminiVisionService.java).
 
 ```mermaid
 sequenceDiagram
@@ -39,7 +39,7 @@ sequenceDiagram
     participant RecSvc as GestureRecognitionService
     participant GeminiSvc as GeminiVisionService
     participant GenAI as Google GenAI Client SDK
-    participant GeminiAPI as Google Gemini 2.5 Flash API
+    participant GeminiAPI as Google Gemini 3.8 Flash API
     participant Mapper as GestureMessageMapper
 
     User->>Servlet: POST /api/recognize (multipart image + sourceType)
@@ -48,7 +48,7 @@ sequenceDiagram
     Servlet->>RecSvc: recognize(imageBytes, mimeType, sourceType)
     RecSvc->>GeminiSvc: analyzeGesture(imageBytes, mimeType)
     GeminiSvc->>GenAI: Client.models.generateContent(model, content, config)
-    GenAI->>GeminiAPI: HTTPS POST /v1beta/models/gemini-2.5-flash:generateContent
+    GenAI->>GeminiAPI: HTTPS POST /v1beta/models/gemini-3.8-flash:generateContent
     GeminiAPI-->>GenAI: JSON response (gestureCode, confidence, explanation)
     GenAI-->>GeminiSvc: GenerateContentResponse.text()
     GeminiSvc-->>RecSvc: Raw JSON string
@@ -63,11 +63,11 @@ sequenceDiagram
 
 ```java
 // GeminiVisionService.java
-String apiKey = resolveApiKey(); // Reads GEMINI_API_KEY or GOOGLE_API_KEY
+String apiKey = resolveApiKey(); // Reads GOOGLE_API_KEY
 String configuredModel = System.getenv("GEMINI_MODEL");
 this.modelName = (configuredModel != null && !configuredModel.isBlank()) 
     ? configuredModel.trim() 
-    : DEFAULT_MODEL; // "gemini-2.5-flash"
+    : DEFAULT_MODEL; // "gemini-3.8-flash"
 
 this.client = Client.builder().apiKey(apiKey).build();
 ```
@@ -79,20 +79,17 @@ this.client = Client.builder().apiKey(apiKey).build();
 Multimodal inputs combine textual prompt instructions with binary image data. The request is structured using SDK fluent builders:
 
 ```java
-// 1. In-memory Base64 encoding
-String base64Data = Base64.getEncoder().encodeToString(imageBytes);
-
-// 2. Build Blob and Part for image
+// 1. Build Blob and Part for image directly from in-memory byte[]
 Blob imageBlob = Blob.builder()
         .mimeType(mimeType)
-        .data(base64Data)
+        .data(imageBytes)
         .build();
 
 Part imagePart = Part.builder()
         .inlineData(imageBlob)
         .build();
 
-// 3. Build text instruction Part
+// 2. Build text instruction Part
 Part textPart = Part.builder()
         .text(CLASSIFICATION_PROMPT)
         .build();
@@ -188,7 +185,7 @@ The service maps all upstream SDK and Google API exceptions to specific HTTP sta
 | Exception Scenario | Upstream Error Pattern | Mapped Error Code | HTTP Status | User Message |
 | :--- | :--- | :--- | :---: | :--- |
 | **Rate Limit / Quota** | `429`, `RESOURCE_EXHAUSTED` | `AI_RATE_LIMIT` | `503 Service Unavailable` | "Gemini API rate limit or quota exceeded. Please retry in a few seconds." |
-| **Authentication** | `401`, `403`, `API_KEY_INVALID` | `AI_AUTH_ERROR` | `500 Internal Server Error` | "Invalid or unauthorized GEMINI_API_KEY provided to Gemini API." |
+| **Authentication** | `401`, `403`, `API_KEY_INVALID` | `AI_AUTH_ERROR` | `500 Internal Server Error` | "Invalid or unauthorized GOOGLE_API_KEY provided to Gemini API." |
 | **Network Timeout** | `timeout`, `timed out` | `AI_TIMEOUT` | `504 Gateway Timeout` | "Gemini Vision API connection timed out. Please retry." |
 | **Empty Response** | Null or blank response text | `AI_EMPTY_RESPONSE` | `502 Bad Gateway` | "Gemini Vision API returned an empty classification response." |
 | **Malformed JSON** | `JsonSyntaxException` from model | Fallback Handler | `200 OK` (Safe Fallback) | Coerces to `UNKNOWN` with explanatory diagnosis. |
@@ -216,3 +213,4 @@ public interface VisionService {
 ```
 
 During testing, [`MockVisionService.java`](file:///d:/MY%20PROJECTS/GestureTalk%20AI/src/test/java/com/gesturetalk/service/MockVisionService.java) simulates live Gemini responses with customizable latency, deterministic confidence scores, and error scenarios.
+

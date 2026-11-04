@@ -16,57 +16,60 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Service encapsulating all communication with Google Gemini Multimodal Vision API
+ * Service encapsulating all communication with Google Gemini Multimodal Vision
+ * API
  * using the official Google GenAI Java SDK (com.google.genai).
  */
 public class GeminiVisionService implements VisionService {
 
     private static final Logger logger = LoggerFactory.getLogger(GeminiVisionService.class);
 
-    public static final String DEFAULT_MODEL = "gemini-2.5-flash";
+    public static final String DEFAULT_MODEL = "gemini-3.8-flash";
 
-    private static final String CLASSIFICATION_PROMPT = 
-        "You are an expert computer vision system for hand gesture recognition.\n" +
-        "Analyze the provided image and classify the primary hand gesture shown.\n" +
-        "You MUST classify the gesture into EXACTLY ONE of the following codes:\n" +
-        "1. \"THUMBS_UP\"      - Closed fist with thumb pointing straight upward.\n" +
-        "2. \"THUMBS_DOWN\"    - Closed fist with thumb pointing straight downward.\n" +
-        "3. \"OPEN_PALM\"      - Flat open hand with all 5 digits extended facing camera.\n" +
-        "4. \"V_SIGN\"         - Index and middle fingers extended in a V-shape; other fingers folded.\n" +
-        "5. \"INDEX_POINTING\" - Single index finger extended pointing; thumb and other fingers folded.\n" +
-        "6. \"UNKNOWN\"        - If no hand is visible, multiple hands show conflicting signs, " +
-        "the hand is blurred/occluded, or the gesture does not unambiguously match the 5 above.\n\n" +
-        "You must output STRICT JSON with this exact schema:\n" +
-        "{\n" +
-        "  \"gestureCode\": \"THUMBS_UP | THUMBS_DOWN | OPEN_PALM | V_SIGN | INDEX_POINTING | UNKNOWN\",\n" +
-        "  \"confidence\": 0.0 to 1.0,\n" +
-        "  \"explanation\": \"Brief 1-sentence description of the observed hand posture.\"\n" +
-        "}";
+    private static final String CLASSIFICATION_PROMPT = "You are an expert computer vision system for hand gesture recognition.\n"
+            +
+            "Analyze the provided image and classify the primary hand gesture shown.\n" +
+            "You MUST classify the gesture into EXACTLY ONE of the following codes:\n" +
+            "1. \"THUMBS_UP\"      - Closed fist with thumb pointing straight upward.\n" +
+            "2. \"THUMBS_DOWN\"    - Closed fist with thumb pointing straight downward.\n" +
+            "3. \"OPEN_PALM\"      - Flat open hand with all 5 digits extended facing camera.\n" +
+            "4. \"V_SIGN\"         - Index and middle fingers extended in a V-shape; other fingers folded.\n" +
+            "5. \"INDEX_POINTING\" - Single index finger extended pointing; thumb and other fingers folded.\n" +
+            "6. \"UNKNOWN\"        - If no hand is visible, multiple hands show conflicting signs, " +
+            "the hand is blurred/occluded, or the gesture does not unambiguously match the 5 above.\n\n" +
+            "You must output STRICT JSON with this exact schema:\n" +
+            "{\n" +
+            "  \"gestureCode\": \"THUMBS_UP | THUMBS_DOWN | OPEN_PALM | V_SIGN | INDEX_POINTING | UNKNOWN\",\n" +
+            "  \"confidence\": 0.0 to 1.0,\n" +
+            "  \"explanation\": \"Brief 1-sentence description of the observed hand posture.\"\n" +
+            "}";
 
     private final Client client;
     private final String modelName;
 
     /**
-     * Production constructor initializing the official Google GenAI Client from environment variables.
+     * Production constructor initializing the official Google GenAI Client from
+     * environment variables.
      */
     public GeminiVisionService() {
         String apiKey = resolveApiKey();
         if (apiKey == null || apiKey.trim().isEmpty()) {
-            logger.error("CRITICAL: Neither GEMINI_API_KEY nor GOOGLE_API_KEY is configured in the environment.");
-            throw new AIServiceException("AI_CONFIG_ERROR", 
-                "GEMINI_API_KEY environment variable is not configured on the server.", 500);
+            logger.error("CRITICAL: GOOGLE_API_KEY environment variable is not configured in the environment.");
+            throw new AIServiceException("AI_CONFIG_ERROR",
+                    "GOOGLE_API_KEY environment variable is not configured on the server.", 500);
         }
 
         String configuredModel = System.getenv("GEMINI_MODEL");
-        this.modelName = (configuredModel != null && !configuredModel.isBlank()) ? configuredModel.trim() : DEFAULT_MODEL;
+        this.modelName = (configuredModel != null && !configuredModel.isBlank()) ? configuredModel.trim()
+                : DEFAULT_MODEL;
 
         try {
             this.client = Client.builder().apiKey(apiKey).build();
             logger.info("GeminiVisionService initialized with model: {}", this.modelName);
         } catch (Exception ex) {
             logger.error("Failed to initialize Google GenAI SDK client: {}", ex.getMessage(), ex);
-            throw new AIServiceException("AI_CLIENT_INIT_ERROR", 
-                "Failed to initialize official Google GenAI SDK client: " + ex.getMessage(), 500, ex);
+            throw new AIServiceException("AI_CLIENT_INIT_ERROR",
+                    "Failed to initialize official Google GenAI SDK client: " + ex.getMessage(), 500, ex);
         }
     }
 
@@ -80,13 +83,10 @@ public class GeminiVisionService implements VisionService {
 
     /**
      * Resolves the API key from system environment variables.
+     * Uses GOOGLE_API_KEY as the single primary authentication variable.
      */
     private static String resolveApiKey() {
-        String key = System.getenv("GEMINI_API_KEY");
-        if (key != null && !key.trim().isEmpty()) {
-            return key.trim();
-        }
-        key = System.getenv("GOOGLE_API_KEY");
+        String key = System.getenv("GOOGLE_API_KEY");
         if (key != null && !key.trim().isEmpty()) {
             return key.trim();
         }
@@ -107,12 +107,9 @@ public class GeminiVisionService implements VisionService {
         }
 
         try {
-            // Encode in-memory bytes into base64 for Blob payload
-            String base64Data = Base64.getEncoder().encodeToString(imageBytes);
-
             Blob imageBlob = Blob.builder()
                     .mimeType(mimeType)
-                    .data(base64Data)
+                    .data(imageBytes)
                     .build();
 
             Part imagePart = Part.builder()
@@ -158,7 +155,7 @@ public class GeminiVisionService implements VisionService {
             }
             if (errorMsg.contains("API_KEY_INVALID") || errorMsg.contains("401") || errorMsg.contains("403")) {
                 throw new AIServiceException("AI_AUTH_ERROR", 
-                    "Invalid or unauthorized GEMINI_API_KEY provided to Gemini API.", 500, ex);
+                    "Invalid or unauthorized GOOGLE_API_KEY provided to Gemini API.", 500, ex);
             }
             if (errorMsg.contains("timeout") || errorMsg.contains("timed out")) {
                 throw new AIServiceException("AI_TIMEOUT", 
@@ -170,7 +167,7 @@ public class GeminiVisionService implements VisionService {
         }
     }
 
-    /**
+/**
      * Sanitizes error messages to ensure API keys and credentials are never exposed in logs or responses.
      */
     private static String sanitizeErrorMessage(String msg) {

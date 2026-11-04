@@ -56,7 +56,7 @@
 ---
 
 ### 3.2 `GET /api/health`
-* **Purpose**: Health-check endpoint used by the client UI and monitoring agents to verify server uptime, MySQL database connectivity, and presence of the `GEMINI_API_KEY`.
+* **Purpose**: Health-check endpoint used by the client UI and monitoring agents to verify server uptime, MySQL database connectivity, and presence of the `GOOGLE_API_KEY`.
 * **HTTP Method**: `GET`
 * **URL**: `/api/health`
 * **Request Headers**: `Accept: application/json`
@@ -85,7 +85,7 @@
     "geminiConfigured": false,
     "databaseConnected": false
   },
-  "error": "GEMINI_API_KEY is missing and MySQL database connection failed."
+  "error": "GOOGLE_API_KEY is missing and MySQL database connection failed."
 }
 ```
 

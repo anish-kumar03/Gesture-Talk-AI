@@ -11,7 +11,12 @@ logs/
 # Environment and sensitive keys
 .env
 *.env
+*.key
+*.secret
+credentials.json
 application-local.properties
+setenv.bat
+setenv.sh
 
 # IDE and Editor configurations
 .idea/

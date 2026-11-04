@@ -127,7 +127,7 @@ When an image contains ambiguous hand configurations, no hand, multiple conflict
 │ Gemini API Rate Limit / Quota   │ Server GeminiVisionService        │ HTTP 503 Service Unavailable: "AI service is │
 │ (HTTP 429 / RESOURCE_EXHAUSTED) │ (Google GenAI Client Exception)   │ busy. Please retry in a few moments."        │
 ├─────────────────────────────────┼───────────────────────────────────┼──────────────────────────────────────────────┤
-│ Missing GEMINI_API_KEY          │ Server Startup / Request Time     │ HTTP 500 Internal Server Error: "Server AI   │
+│ Missing GOOGLE_API_KEY          │ Server Startup / Request Time     │ HTTP 500 Internal Server Error: "Server AI   │
 │                                 │ (AppConfig / GeminiVisionService) │ service is unconfigured. Contact admin."     │
 ├─────────────────────────────────┼───────────────────────────────────┼──────────────────────────────────────────────┤
 │ Database Connection Offline     │ Data Access Layer                 │ Non-blocking: Server logs DB error, returns  │

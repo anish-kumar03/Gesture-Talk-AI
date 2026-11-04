@@ -99,7 +99,7 @@ The initial version of GestureTalk AI strictly recognizes **five predefined stat
 
 ## 6. Expected Outcomes
 
-* **Zero-Exposition of Credentials**: Strict architectural enforcement guaranteeing that the `GEMINI_API_KEY` never touches client-side code, cookies, or browser storage.
+* **Zero-Exposition of Credentials**: Strict architectural enforcement guaranteeing that the `GOOGLE_API_KEY` never touches client-side code, cookies, or browser storage.
 * **Privacy-by-Design Compliance**: No captured webcam frames or uploaded images are written to persistent storage (disk, cloud bucket, or database). Frames exist solely in volatile JVM memory during the HTTP request lifecycle.
 * **Deterministic Semantic Mapping**: Separation of probabilistic visual classification (handled by Gemini) from deterministic text mapping (handled by Java business logic), eliminating AI hallucinations in spoken output.
 * **Platform Independence**: Client execution on any device with a modern browser without requiring native application installation, browser extensions, or specialized neural compute hardware.

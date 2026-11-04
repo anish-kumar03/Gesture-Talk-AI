@@ -62,7 +62,7 @@ All backend errors emitted across the `/api/*` endpoints conform to a uniform, m
 │                       │                            │             │ Please frame your hand clearly."                       │
 ├───────────────────────┼────────────────────────────┼─────────────┼────────────────────────────────────────────────────────┤
 │ Missing API Key       │ AI_CONFIG_ERROR            │ 500 Int Err │ Return JSON error: "Server AI configuration error.     │
-│                       │                            │             │ Contact administrator to set GEMINI_API_KEY."          │
+│                       │                            │             │ Contact administrator to set GOOGLE_API_KEY."         │
 ├───────────────────────┼────────────────────────────┼─────────────┼────────────────────────────────────────────────────────┤
 │ Gemini Quota Exceeded │ AI_RATE_LIMIT              │ 503 Unavail │ Return JSON error: "AI service quota reached.          │
 │ (HTTP 429)            │                            │             │ Please wait 5 seconds before retrying."                │

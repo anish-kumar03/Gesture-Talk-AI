@@ -84,7 +84,7 @@ To achieve academic and enterprise reliability, GestureTalk AI employs a multi-t
 ├────────┼──────────────────────┼────────────────────────────────┼────────────────────────────────────────────┼──────────┤
 │ TC-11  │ AI Rate Limit (429)  │ Mock client throws 429 error   │ Throws AIServiceException (HTTP 503)       │ High     │
 ├────────┼──────────────────────┼────────────────────────────────┼────────────────────────────────────────────┼──────────┤
-│ TC-12  │ Missing API Key      │ Clear GEMINI_API_KEY env       │ Throws IllegalStateException on init       │ High     │
+│ TC-12  │ Missing API Key      │ Clear GOOGLE_API_KEY env       │ Throws AIServiceException on init          │ High     │
 ├────────┼──────────────────────┼────────────────────────────────┼────────────────────────────────────────────┼──────────┤
 │ TC-13  │ DB Insert Log (H2)   │ Valid RecognitionLog record    │ Generates non-null primary key ID          │ High     │
 ├────────┼──────────────────────┼────────────────────────────────┼────────────────────────────────────────────┼──────────┤

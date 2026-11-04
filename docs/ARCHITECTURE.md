@@ -19,7 +19,7 @@
 2. **Deterministic Natural Language Mapping**: The generative AI model performs visual classification only; user-facing sentences are deterministically resolved by immutable Java logic.
 3. **In-Memory Volatile Processing**: Uploaded frames and camera snapshots exist exclusively in volatile memory (`byte[]` buffers). Zero image bytes are ever written to disk or stored in the database.
 4. **Strict Separation of Concerns (MVC)**: Clean boundary enforcement between View (JSP, HTML5, CSS3, vanilla JS), Controller (Jakarta Servlets), Service (Domain Logic & AI Orchestration), Model (DTOs and Entities), and DAO (JDBC PreparedStatement Layer).
-5. **Privacy & Credential Isolation**: The Google Gemini API key (`GEMINI_API_KEY`) and database credentials are read exclusively from environment variables on the server. No secrets are ever exposed to client-side scripts.
+5. **Privacy & Credential Isolation**: The Google GenAI API key (`GOOGLE_API_KEY`) and database credentials are read exclusively from environment variables on the server. No secrets are ever exposed to client-side scripts.
 
 ---
 
@@ -54,7 +54,7 @@ flowchart TD
     end
 
     subgraph External["External Services & Storage"]
-        GEMINI_API["Google Gemini 2.5 Flash API<br/>(Multimodal Vision)"]
+        GEMINI_API["Google Gemini 3.8 Flash API<br/>(Multimodal Vision)"]
         MYSQL[("MySQL 8.0+ Database<br/>(gesturetalk_db)")]
     end
 
@@ -186,10 +186,11 @@ sequenceDiagram
 
 | Security Domain | Applied Architectural Measure |
 | :--- | :--- |
-| **API Key Protection** | Server-side environment variable only (`GEMINI_API_KEY`). Regex log scrubbing redacts credentials before log output. |
+| **API Key Protection** | Server-side environment variable only (`GOOGLE_API_KEY`). Regex log scrubbing redacts credentials before log output. |
 | **File Upload Validation** | Strict binary header inspection (magic bytes for JPEG `FF D8 FF`, PNG `89 50 4E 47`, WebP `RIFF...WEBP`). Claimed `Content-Type` is never trusted. Executable binaries (`.exe`, `.pdf`, `.zip`, `.elf`) rejected with HTTP 415. |
 | **Size Constraint** | Maximum file size strictly enforced at $5 \text{ MB}$ ($5,242,880 \text{ bytes}$) with HTTP 413 rejection. |
 | **Volatile Processing** | All frames read into in-memory `byte[]` streams. No disk files created. |
 | **SQL Injection Prevention** | 100% parameterized JDBC `PreparedStatement` with bound placeholders (`?`). |
 | **XSS Prevention** | Client rendering uses `.textContent` and HTML escaping for all dynamic model outputs. |
 | **In-Flight Guarding** | Duplicate request prevention flags block overlapping clicks while an AI request is in progress. |
+

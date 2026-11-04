@@ -38,10 +38,16 @@ Ensure the host workstation or deployment server meets the following minimum pre
 
 The application requires specific environment variables configured on the host machine. These variables configure database credentials and the Gemini API key without hardcoding them into source files:
 
-### Windows PowerShell Configuration:
+### Windows PowerShell Configuration (Recommended: User Level):
 ```powershell
-# Set Gemini API Key (Required for AI Vision)
-[System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'your-actual-gemini-api-key-here', 'User')
+# Set Primary Standard API Key for Google GenAI Java SDK (Required, stored in User registry)
+[System.Environment]::SetEnvironmentVariable('GOOGLE_API_KEY', 'your-actual-api-key-here', 'User')
+
+# Optional Configurable Vision Model (Preferred default: gemini-3.8-flash)
+[System.Environment]::SetEnvironmentVariable('GEMINI_MODEL', 'gemini-3.8-flash', 'User')
+
+# Optional Safety Confidence Threshold (Defaults to 0.75)
+[System.Environment]::SetEnvironmentVariable('CONFIDENCE_THRESHOLD', '0.75', 'User')
 
 # Optional Database Overrides (Defaults apply if not provided)
 [System.Environment]::SetEnvironmentVariable('DB_URL', 'jdbc:mysql://localhost:3306/gesturetalk_db?useSSL=false&serverTimezone=UTC', 'User')
@@ -49,8 +55,13 @@ The application requires specific environment variables configured on the host m
 [System.Environment]::SetEnvironmentVariable('DB_PASSWORD', 'YourPasswordHere', 'User')
 ```
 
-> [!IMPORTANT]
-> After setting user environment variables in Windows, restart your terminal or IDE so that the child processes inherit the updated environment variables.
+> [!TIP]
+> **Model Availability Check**:
+> Do not assume a specific model tier is available. You can verify available models for your API key with:
+> `Invoke-RestMethod -Uri "https://generativelanguage.googleapis.com/v1beta/models?key=$env:GOOGLE_API_KEY" | Select-Object -ExpandProperty models | Select-Object name`
+> If `gemini-3.8-flash` is not yet active for your tier, set `GEMINI_MODEL` to `gemini-2.5-flash`.
+> 
+> After setting user environment variables in Windows, restart your terminal or IDE so that child processes inherit the updated environment variables. Never commit real keys or config files into the Git repository.
 
 ---
 
@@ -179,7 +190,7 @@ Expected output:
 │ "Cannot find symbol: jakarta.*" │ Incompatible servlet API version  │ Ensure Tomcat 10.1+ is used. Tomcat 9 uses   │
 │ during build or deployment      │ or legacy javax.* imports.        │ javax.servlet, which is incompatible.        │
 ├─────────────────────────────────┼───────────────────────────────────┼──────────────────────────────────────────────┤
-│ HTTP 500: GEMINI_API_KEY is not │ Missing environment variable in   │ Set GEMINI_API_KEY in Windows environment and│
+│ HTTP 500: GOOGLE_API_KEY is not │ Missing environment variable in   │ Set GOOGLE_API_KEY in Windows environment and│
 │ set in the environment          │ Tomcat's execution environment.   │ restart Tomcat from a fresh PowerShell shell.│
 ├─────────────────────────────────┼───────────────────────────────────┼──────────────────────────────────────────────┤
 │ Communications link failure     │ MySQL service is stopped or port  │ Start MySQL service (`Start-Service MySQL80`)│

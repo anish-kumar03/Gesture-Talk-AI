@@ -89,7 +89,7 @@ All architectural diagrams are rendered using standard GitHub-flavored **Mermaid
 * [x] **Primary Language**: 100% Core Java 21 LTS backend.
 * [x] **No Spring Boot / No Node.js / No Python**: Pure Jakarta EE 10 Servlets on Apache Tomcat 10.1+.
 * [x] **Modern GenAI SDK**: Official `com.google.genai:google-genai` Java SDK integrated on the server side.
-* [x] **Zero Secret Leakage**: `GEMINI_API_KEY` accessed exclusively through server environment variables.
+* [x] **Zero Secret Leakage**: `GOOGLE_API_KEY` accessed exclusively through server environment variables.
 * [x] **Privacy Preserved**: Ephemeral in-memory image processing; zero permanent disk or database storage.
 * [x] **Deterministic Audio**: Natural speech mapped via immutable Java constants; vocalized via browser SpeechSynthesis.
 * [x] **Relational Persistence**: MySQL 8.0 audit logging via HikariCP connection pool and JDBC `PreparedStatement`.

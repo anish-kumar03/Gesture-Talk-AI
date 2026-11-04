@@ -32,12 +32,12 @@ The project integrates the official Google GenAI Java SDK configured in `pom.xml
 <dependency>
     <groupId>com.google.genai</groupId>
     <artifactId>google-genai</artifactId>
-    <version>0.1.1</version>
+    <version>1.80.0</version>
 </dependency>
 ```
 
 ### 2.1 Server-Side Authentication & Secret Isolation
-The SDK initializes an authenticated `Client` instance by reading the `GEMINI_API_KEY` environment variable. The API key is strictly maintained within the server process and is **never** accessible to the client browser:
+The SDK initializes an authenticated `Client` instance by reading the **`GOOGLE_API_KEY`** environment variable, which is the official standard for the Google GenAI Java SDK. The API key is strictly maintained within the server process and is **never** accessible to the client browser:
 
 ```java
 package com.gesturetalk.service;
@@ -52,22 +52,47 @@ import org.slf4j.LoggerFactory;
 
 public class GeminiVisionService {
     private static final Logger logger = LoggerFactory.getLogger(GeminiVisionService.class);
-    private static final String MODEL_NAME = "gemini-2.5-flash";
+    public static final String DEFAULT_MODEL = "gemini-3.8-flash";
     private final Client client;
+    private final String modelName;
 
     public GeminiVisionService() {
-        String apiKey = System.getenv("GEMINI_API_KEY");
+        // Primary standard environment variable for Google GenAI Java SDK
+        String apiKey = System.getenv("GOOGLE_API_KEY");
         if (apiKey == null || apiKey.trim().isEmpty()) {
-            apiKey = System.getenv("GOOGLE_API_KEY");
+            logger.error("CRITICAL: GOOGLE_API_KEY environment variable is not configured.");
+            throw new IllegalStateException("GOOGLE_API_KEY is not set in the environment.");
         }
-        if (apiKey == null || apiKey.trim().isEmpty()) {
-            logger.error("CRITICAL: GEMINI_API_KEY environment variable is not configured.");
-            throw new IllegalStateException("GEMINI_API_KEY is not set in the environment.");
-        }
+
+        // Configurable model ID (defaults to preferred gemini-3.8-flash)
+        String configuredModel = System.getenv("GEMINI_MODEL");
+        this.modelName = (configuredModel != null && !configuredModel.isBlank())
+            ? configuredModel.trim()
+            : DEFAULT_MODEL;
+
         // Initialize official GenAI SDK client
         this.client = Client.builder().apiKey(apiKey).build();
     }
 }
+```
+
+#### Windows PowerShell Environment Variable Setup (Recommended: User Level):
+```powershell
+# Recommended: Persist for user account across reboots (never stored in project files)
+[System.Environment]::SetEnvironmentVariable('GOOGLE_API_KEY', 'AIzaSyYourActualKeyFromGoogleAIStudio', 'User')
+
+# Optional configurable model ID (preferred default: gemini-3.8-flash)
+[System.Environment]::SetEnvironmentVariable('GEMINI_MODEL', 'gemini-3.8-flash', 'User')
+```
+
+#### Verifying Model Availability for Your API Key:
+Do not assume every model is provisioned for every API key. Developers can inspect available models using:
+```powershell
+Invoke-RestMethod -Uri "https://generativelanguage.googleapis.com/v1beta/models?key=$env:GOOGLE_API_KEY" | Select-Object -ExpandProperty models | Select-Object name, supportedGenerationMethods
+```
+If `gemini-3.8-flash` is not yet available for your quota, override with `gemini-2.5-flash`:
+```powershell
+[System.Environment]::SetEnvironmentVariable('GEMINI_MODEL', 'gemini-2.5-flash', 'User')
 ```
 
 ---

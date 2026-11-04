@@ -114,3 +114,4 @@ mvn test -Dtest=GestureAccuracyEvaluationTest
 ```bash
 mvn test -Dtest=GestureHistoryDAOTest,DBConnectionTest
 ```
+

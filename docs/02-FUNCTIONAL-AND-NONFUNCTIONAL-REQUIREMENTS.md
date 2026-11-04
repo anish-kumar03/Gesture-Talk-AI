@@ -113,7 +113,7 @@ Requirements are categorized according to the **MoSCoW** prioritization framewor
 * **Reference Guide**: Permanent on-screen reference cards illustrating the five supported hand gestures so users know exact expected postures.
 
 ### 3.4 Security (NFR-04)
-* **Server-Side Secret Isolation**: The `GEMINI_API_KEY` must never be transmitted to, stored in, or referenced by client-side code, headers, or HTML.
+* **Server-Side Secret Isolation**: The `GOOGLE_API_KEY` must never be transmitted to, stored in, or referenced by client-side code, headers, or HTML.
 * **SQL Injection Prevention**: 100% of SQL queries must utilize parameterized JDBC `PreparedStatement` instances. No string concatenation in SQL queries.
 * **Input Sanitization**: All incoming multipart file names, sizes, and MIME headers must be validated and sanitized to prevent path traversal or upload exploits.
 
